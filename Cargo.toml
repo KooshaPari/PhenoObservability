@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2024"
 description = "PhenoObservability - Logging, Metrics, Tracing"
 
-[lib]
-path = "crates/pheno-obs-core/src/lib.rs"
+[[bin]]
+name = "pheno-observability"
+path = "src/main.rs"
 
 [workspace]
 members = ["crates/*"]
