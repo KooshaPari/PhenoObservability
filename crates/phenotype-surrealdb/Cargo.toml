@@ -1,0 +1,19 @@
+[package]
+name = "phenotype-surrealdb"
+version = "0.1.0"
+edition = "2024"
+description = "Fork of surrealdb/surrealdb with Pheno extensions"
+license = "Apache-2.0"
+repository = "https://github.com/surrealdb/surrealdb"
+
+[dependencies]
+surrealdb = { version = "2.0", default-features = false, features = ["protocol-ws"] }
+tokio = { version = "1.44", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
