@@ -1,0 +1,13 @@
+# Generated CI workflow - calls reusable phenotype workflow
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  ci:
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/ci.yaml@main
+    secrets: inherit
