@@ -1,0 +1,12 @@
+[package]
+name = "pheno-observability"
+version = "0.1.0"
+edition = "2024"
+description = "PhenoObservability - Logging, Metrics, Tracing"
+
+[lib]
+path = "crates/pheno-obs-core/src/lib.rs"
+
+[workspace]
+members = ["crates/*"]
+resolver = "3"
