@@ -1,0 +1,23 @@
+# Generated publish workflow - calls reusable phenotype workflow
+name: Publish Crate
+
+on:
+  workflow_dispatch:
+    inputs:
+      crate:
+        description: 'Crate path to publish (leave empty for workspace root)'
+        required: false
+        default: '.'
+      dry-run:
+        description: 'Dry run (do not actually publish)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@main
+    with:
+      crate: ${{ github.event.inputs.crate }}
+      dry-run: ${{ github.event.inputs.dry-run }}
+    secrets: inherit

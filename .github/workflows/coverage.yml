@@ -1,0 +1,13 @@
+# Generated coverage workflow - calls reusable phenotype workflow
+name: Coverage
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  coverage:
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/coverage.yml@main
+    secrets: inherit
