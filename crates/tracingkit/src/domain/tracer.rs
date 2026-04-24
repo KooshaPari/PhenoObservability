@@ -1,9 +1,8 @@
 //! Tracer Trait - Port Interface
 
 use async_trait::async_trait;
-use uuid::Uuid;
 
-use super::{Span, SpanKind, SpanContext, TraceId};
+use super::{SpanKind, SpanContext};
 
 /// Tracer trait - primary port
 #[async_trait]
@@ -31,6 +30,41 @@ pub trait SpanHandle: Send {
     fn end(&self);
 }
 
+/// Concrete handle wrapping a [`super::Span`] with interior mutability so the
+/// sync `SpanHandle` contract (which takes `&self`) can mutate the underlying
+/// span safely across threads.
+pub struct SpanHandleImpl {
+    inner: std::sync::Mutex<super::Span>,
+}
+
+impl SpanHandleImpl {
+    pub fn new(span: super::Span) -> Self {
+        Self {
+            inner: std::sync::Mutex::new(span),
+        }
+    }
+}
+
+impl SpanHandle for SpanHandleImpl {
+    fn set_attribute(&self, key: String, value: super::AttributeValue) {
+        if let Ok(mut span) = self.inner.lock() {
+            span.set_attribute(key, value);
+        }
+    }
+
+    fn add_event(&self, name: String) {
+        if let Ok(mut span) = self.inner.lock() {
+            span.add_event(name);
+        }
+    }
+
+    fn end(&self) {
+        if let Ok(mut span) = self.inner.lock() {
+            span.end();
+        }
+    }
+}
+
 /// Span wrapper for scoped spans
 pub struct ScopedSpan<'a> {
     tracer: &'a dyn Tracer,
@@ -48,14 +82,22 @@ impl<'a> ScopedSpan<'a> {
         }
     }
 
-    pub fn with_attribute(mut self, key: &str, value: super::AttributeValue) -> Self {
+    pub fn with_attribute(self, key: &str, value: super::AttributeValue) -> Self {
         self.span.set_attribute(key.to_string(), value);
         self
     }
 
-    pub fn with_event(mut self, name: &str) -> Self {
+    pub fn with_event(self, name: &str) -> Self {
         self.span.add_event(name.to_string());
         self
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn tracer(&self) -> &dyn Tracer {
+        self.tracer
     }
 }
 

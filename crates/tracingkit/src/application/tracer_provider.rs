@@ -5,8 +5,6 @@ use async_trait::async_trait;
 
 use crate::domain::*;
 
-pub type TraceResult<T> = Result<T, TraceError>;
-
 pub struct TracerProviderBuilder {
     name: String,
     version: Option<String>,
@@ -61,10 +59,14 @@ impl TracerProvider {
         TracerProviderBuilder::new(name)
     }
 
-    pub fn tracer(&self) -> TracerInstance {
+    pub fn tracer(&self) -> TracerInstance<'_> {
         TracerInstance {
             provider: self,
         }
+    }
+
+    pub fn sampler(&self) -> &dyn Sampler {
+        self.sampler.as_ref().as_ref()
     }
 
     pub async fn shutdown(&self) -> TraceResult<()> {
@@ -82,17 +84,17 @@ pub struct TracerInstance<'a> {
 impl<'a> Tracer for TracerInstance<'a> {
     fn span(&self, name: &str) -> Box<dyn SpanHandle> {
         let span = Span::new(name, uuid::Uuid::new_v4());
-        Box::new(span) as Box<dyn SpanHandle>
+        Box::new(SpanHandleImpl::new(span)) as Box<dyn SpanHandle>
     }
 
     fn span_with_parent(&self, name: &str, parent: &SpanContext) -> Box<dyn SpanHandle> {
         let span = Span::new(name, parent.trace_id);
-        Box::new(span) as Box<dyn SpanHandle>
+        Box::new(SpanHandleImpl::new(span)) as Box<dyn SpanHandle>
     }
 
     fn span_with_kind(&self, name: &str, kind: SpanKind) -> Box<dyn SpanHandle> {
         let span = Span::new(name, uuid::Uuid::new_v4()).with_kind(kind);
-        Box::new(span) as Box<dyn SpanHandle>
+        Box::new(SpanHandleImpl::new(span)) as Box<dyn SpanHandle>
     }
 
     fn name(&self) -> &str {

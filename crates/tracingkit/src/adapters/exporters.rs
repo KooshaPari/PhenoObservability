@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 
 use crate::application::SpanExporter;
-use crate::domain::{Span, TraceError, TraceResult};
+use crate::domain::{Span, TraceResult};
 
 /// Console exporter for debugging
 pub struct ConsoleExporter;
