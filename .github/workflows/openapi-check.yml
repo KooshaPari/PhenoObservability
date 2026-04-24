@@ -1,0 +1,36 @@
+name: openapi-drift-check
+
+on:
+  pull_request:
+    paths:
+      - 'openapi.yaml'
+      - 'rust/phenotype-health/**'
+      - 'rust/phenotype-health-axum/**'
+      - '.github/workflows/openapi-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'openapi.yaml'
+      - 'rust/phenotype-health/**'
+      - 'rust/phenotype-health-axum/**'
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    # Gated off: the axum REST crates under `rust/` are not yet part of
+    # the top-level cargo workspace and lack a `--dump-openapi` flag.
+    # Re-enable once utoipa annotations land and the workspace shape
+    # is normalized. Pattern source: AgilePlus#366.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Dump generated OpenAPI
+        run: |
+          cd rust/phenotype-health-axum
+          cargo run --bin phenotype-health-axum -- --dump-openapi > ../../openapi.generated.yaml
+      - name: Compare with committed seed
+        run: diff -u openapi.yaml openapi.generated.yaml

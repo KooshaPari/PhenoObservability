@@ -1,0 +1,222 @@
+openapi: 3.1.0
+info:
+  title: PhenoObservability Health & Dashboard API
+  version: 0.1.0
+  description: |
+    REST surface exposed by PhenoObservability's Rust crates:
+
+    - `rust/phenotype-health`: embeddable health framework with an
+      axum `/health`, `/health/detailed`, `/health/component/{name}`
+      router (feature-gated on `http`).
+    - `rust/phenotype-health-axum`: standalone health dashboard binary
+      serving an HTML view plus a small JSON API (`/api/health`,
+      `/api/dashboard`, `/api/scan`, `/api/projects/{name}`).
+
+    Seed OpenAPI spec scaffolded per audit #118. Pattern mirrors
+    AgilePlus#366 (hand-authored seed + CI drift check gated off until
+    utoipa annotations land). The Rust handlers in
+    `rust/phenotype-health*/src` remain source-of-truth today.
+
+    Note: these crates live under `rust/` and `ObservabilityKit/rust/`
+    and are not yet part of the top-level cargo workspace
+    (`crates/*`). utoipa wiring is deferred until that workspace
+    shape is resolved.
+  license:
+    name: MIT OR Apache-2.0
+servers:
+  - url: http://localhost:8080
+    description: Local phenotype-health-axum dashboard
+  - url: http://localhost:3000
+    description: Embedded phenotype-health router (consumer-defined port)
+tags:
+  - name: dashboard
+    description: HTML dashboard and JSON views (phenotype-health-axum)
+  - name: health
+    description: Health probes (phenotype-health, phenotype-health-axum)
+  - name: scan
+    description: Manual health scan trigger
+paths:
+  /:
+    get:
+      tags: [dashboard]
+      summary: Render the health dashboard HTML page
+      description: Returns a self-contained HTML page summarizing the latest health report.
+      responses:
+        '200':
+          description: Dashboard HTML
+          content:
+            text/html:
+              schema: { type: string }
+  /health:
+    get:
+      tags: [health]
+      summary: Aggregate health status
+      description: |
+        Returns aggregate health status. Served by both
+        `phenotype-health::http::build_router` and
+        `phenotype-health-axum`. Suitable for container liveness probes.
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+        '503':
+          description: Unhealthy or degraded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+  /health/detailed:
+    get:
+      tags: [health]
+      summary: Detailed per-component health
+      description: Returns health status for every registered component.
+      responses:
+        '200':
+          description: Detailed report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DetailedHealthReport' }
+  /health/component/{name}:
+    get:
+      tags: [health]
+      summary: Health for a specific component
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+          description: Component identifier (e.g. `database`, `cache`).
+      responses:
+        '200':
+          description: Component health
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ComponentHealth' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/health:
+    get:
+      tags: [health]
+      summary: JSON health (dashboard API)
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+  /api/dashboard:
+    get:
+      tags: [dashboard]
+      summary: Dashboard data payload
+      description: JSON backing the HTML dashboard.
+      responses:
+        '200':
+          description: Dashboard payload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DashboardPayload' }
+  /api/scan:
+    post:
+      tags: [scan]
+      summary: Trigger a fresh health scan
+      responses:
+        '202':
+          description: Scan accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted: { type: boolean }
+                  scan_id: { type: string, nullable: true }
+  /api/projects/{name}:
+    get:
+      tags: [dashboard]
+      summary: Project health detail
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+          description: Project identifier.
+      responses:
+        '200':
+          description: Project detail payload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+  schemas:
+    ErrorBody:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        reason: { type: string, nullable: true }
+    HealthStatusKind:
+      type: string
+      enum: [healthy, degraded, unhealthy, unknown]
+    HealthStatus:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status: { $ref: '#/components/schemas/HealthStatusKind' }
+        timestamp: { type: string, format: date-time }
+        version: { type: string, nullable: true }
+        uptime_s: { type: integer, format: int64, nullable: true }
+    ComponentHealth:
+      type: object
+      required: [name, status]
+      properties:
+        name: { type: string }
+        status: { $ref: '#/components/schemas/HealthStatusKind' }
+        message: { type: string, nullable: true }
+        latency_ms: { type: number, format: double, nullable: true }
+        checked_at: { type: string, format: date-time, nullable: true }
+        metadata:
+          type: object
+          additionalProperties: true
+    DetailedHealthReport:
+      type: object
+      required: [overall, components]
+      properties:
+        overall: { $ref: '#/components/schemas/HealthStatusKind' }
+        timestamp: { type: string, format: date-time }
+        components:
+          type: array
+          items: { $ref: '#/components/schemas/ComponentHealth' }
+    ProjectSummary:
+      type: object
+      required: [name, status]
+      properties:
+        name: { type: string }
+        status: { $ref: '#/components/schemas/HealthStatusKind' }
+        last_checked: { type: string, format: date-time, nullable: true }
+    DashboardPayload:
+      type: object
+      required: [overall, projects]
+      properties:
+        overall: { $ref: '#/components/schemas/HealthStatusKind' }
+        generated_at: { type: string, format: date-time }
+        projects:
+          type: array
+          items: { $ref: '#/components/schemas/ProjectSummary' }
+    ProjectDetail:
+      type: object
+      required: [name, status]
+      properties:
+        name: { type: string }
+        status: { $ref: '#/components/schemas/HealthStatusKind' }
+        components:
+          type: array
+          items: { $ref: '#/components/schemas/ComponentHealth' }
+        metadata:
+          type: object
+          additionalProperties: true
