@@ -1,7 +1,5 @@
 #![doc = "Dragonfly client for PhenoObservability - Redis-compatible, multi-threaded cache"]
 
-use async_trait::async_trait;
-use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use redis::{aio::ConnectionManager, AsyncCommands, Client};
 use serde::{Deserialize, Serialize};
@@ -67,7 +65,7 @@ impl DragonflyClient {
         let value = serde_json::to_string(session)
             .map_err(|e| DragonflyError::Serialization(e.to_string()))?;
         let mut conn = self.conn.clone();
-        conn.set_ex(&key, &value, session.ttl_seconds)
+        let _: () = conn.set_ex(&key, &value, session.ttl_seconds)
             .await
             .map_err(|e| DragonflyError::Operation(e.to_string()))?;
         debug!("Session stored: {}", session.id);
@@ -94,7 +92,7 @@ impl DragonflyClient {
     /// Set with custom TTL
     pub async fn set_with_ttl(&self, key: &str, value: &[u8], ttl_seconds: u64) -> Result<(), DragonflyError> {
         let mut conn = self.conn.clone();
-        conn.set_ex(key, value, ttl_seconds)
+        let _: () = conn.set_ex(key, value, ttl_seconds)
             .await
             .map_err(|e| DragonflyError::Operation(e.to_string()))?;
         Ok(())
