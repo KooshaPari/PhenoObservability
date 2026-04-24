@@ -11,11 +11,17 @@ members = [
     "crates/tracely-sentinel",
     "crates/helix-logging",
     "crates/tracingkit",
+    "rust/phenotype-health",
+    "rust/phenotype-logging",
+    "rust/phenotype-metrics",
+    "rust/phenotype-mock",
+    "rust/phenotype-telemetry",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.75"
 authors = ["Phenotype Team <team@phenotype.dev>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/KooshaPari/PhenoObservability"
@@ -34,3 +40,4 @@ anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
+prometheus = "0.13"
