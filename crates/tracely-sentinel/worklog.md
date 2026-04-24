@@ -1,5 +1,7 @@
 # Worklog: phenotype-sentinel
 
+**Category: GOVERNANCE**
+
 ## Date: 2026-04-02
 
 ### Summary

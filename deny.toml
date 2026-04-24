@@ -1,0 +1,29 @@
+[advisories]
+db-path = "$CARGO_HOME/advisory-db"
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "MPL-2.0",
+    "0BSD",
+    "CC0-1.0",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+
+[sources]
+unknown-registry = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+# LOW severity advisories deferred pending upstream fixes (2026-04-24 audit)
+# Expires: 2026-07-23
+[[advisories.ignore]]
+advisory = "RUSTSEC-2024-0437"
+reason = "protobuf: LOW severity uncontrolled recursion crash. Awaiting upstream fix."
