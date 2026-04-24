@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- N/A
+
+---
+
+
 All notable changes to this project will be documented in this file.
 
 ## 🐛 Bug Fixes
