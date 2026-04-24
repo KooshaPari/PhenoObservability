@@ -11,10 +11,6 @@ default = []
 # real work regardless of the feature set.
 real-sources = []
 
-# Exclude from the root workspace while the rust/ subtree is still
-# orphaned (pre-dedupe). Removed as part of issue #50.
-[workspace]
-
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 thiserror = "1"
