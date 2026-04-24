@@ -1,0 +1,17 @@
+[package]
+name = "phenotype-security-aggregator"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Placeholder stub for phenotype security aggregator (precursor to PhenoObs workspace dedupe)"
+
+[features]
+default = []
+# Kept for API compatibility with `phenotype-health-cli`. The stub performs no
+# real work regardless of the feature set.
+real-sources = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+async-trait = "0.1"
