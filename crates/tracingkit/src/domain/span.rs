@@ -4,8 +4,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::SpanStatus;
-
 /// Span ID
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SpanId(Uuid);
@@ -33,7 +31,7 @@ pub enum SpanKind {
 }
 
 /// Span status
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SpanStatus {
     Unset,
     Ok,
