@@ -130,36 +130,168 @@ impl Default for TraceContext {
 mod tests {
     use super::*;
 
+    // Traces to: FR-OBS-002
     #[test]
-    fn creates_span_ids() {
-        let id = span_id();
-        assert!(!id.is_empty());
+    fn test_span_id_generation() {
+        let id1 = span_id();
+        let id2 = span_id();
+        assert!(!id1.is_empty());
+        assert!(!id2.is_empty());
+        assert_ne!(id1, id2, "Span IDs should be unique");
     }
 
+    // Traces to: FR-OBS-002
     #[test]
-    fn builds_trace_context() {
+    fn test_trace_id_generation() {
+        let id1 = trace_id();
+        let id2 = trace_id();
+        assert!(!id1.is_empty());
+        assert!(!id2.is_empty());
+        assert_ne!(id1, id2, "Trace IDs should be unique");
+    }
+
+    // Traces to: FR-OBS-003
+    #[test]
+    fn test_trace_context_creation() {
         let context = TraceContext::new();
         assert!(!context.trace_id.is_empty());
         assert!(!context.span_id.is_empty());
         assert_ne!(context.trace_id, context.span_id);
     }
 
+    // Traces to: FR-OBS-003
     #[test]
-    fn maps_levels() {
+    fn test_trace_context_clone() {
+        let context1 = TraceContext::new();
+        let context2 = context1.clone();
+        assert_eq!(context1.trace_id, context2.trace_id);
+        assert_eq!(context1.span_id, context2.span_id);
+    }
+
+    // Traces to: FR-OBS-003
+    #[test]
+    fn test_trace_context_default() {
+        let context = TraceContext::default();
+        assert!(!context.trace_id.is_empty());
+        assert!(!context.span_id.is_empty());
+    }
+
+    // Traces to: FR-OBS-007
+    #[test]
+    fn test_level_as_str_all_levels() {
+        assert_eq!(level_as_str(Level::TRACE), "trace");
+        assert_eq!(level_as_str(Level::DEBUG), "debug");
         assert_eq!(level_as_str(Level::INFO), "info");
+        assert_eq!(level_as_str(Level::WARN), "warn");
         assert_eq!(level_as_str(Level::ERROR), "error");
     }
 
+    // Traces to: FR-OBS-008
     #[test]
-    fn builds_default_config() {
+    fn test_trace_key_display() {
+        let key = TraceKey("test.span");
+        let display_str = format!("{}", key);
+        assert_eq!(display_str, "test.span");
+    }
+
+    // Traces to: FR-OBS-008
+    #[test]
+    fn test_trace_key_debug() {
+        let key = TraceKey("test.span");
+        let debug_str = format!("{:?}", key);
+        assert_eq!(debug_str, r#"TraceKey("test.span")"#);
+    }
+
+    // Traces to: FR-OBS-008
+    #[test]
+    fn test_trace_key_equality() {
+        let key1 = TraceKey("test");
+        let key2 = TraceKey("test");
+        let key3 = TraceKey("other");
+        assert_eq!(key1, key2);
+        assert_ne!(key1, key3);
+    }
+
+    // Traces to: FR-OBS-008
+    #[test]
+    fn test_trace_key_hash() {
+        use std::collections::HashSet;
+        let key1 = TraceKey("test");
+        let key2 = TraceKey("test");
+        let key3 = TraceKey("other");
+        let mut set = HashSet::new();
+        set.insert(key1);
+        assert!(set.contains(&key2));
+        assert!(!set.contains(&key3));
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_level_validation() {
+        let configs = vec![
+            ("trace", "trace"),
+            ("debug", "debug"),
+            ("info", "info"),
+            ("warn", "warn"),
+            ("error", "error"),
+        ];
+        for (input, expected) in configs {
+            let config = TracingConfig::new(input);
+            assert_eq!(config.level, expected);
+        }
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_level_with_uppercase() {
+        let config = TracingConfig::new("DEBUG");
+        assert_eq!(config.level, "DEBUG");
+    }
+
+    // Traces to: FR-OBS-004
+    #[test]
+    fn test_config_span_events() {
+        let config_without = TracingConfig::new("info").with_span_events(false);
+        assert!(!config_without.span_events);
+
+        let config_with = TracingConfig::new("info").with_span_events(true);
+        assert!(config_with.span_events);
+    }
+
+    // Traces to: FR-OBS-005
+    #[test]
+    fn test_config_thread_info() {
+        let config = TracingConfig::new("info")
+            .with_thread_ids(true)
+            .with_thread_names(true);
+        assert!(config.include_thread_ids);
+        assert!(config.include_thread_names);
+    }
+
+    // Traces to: FR-OBS-005
+    #[test]
+    fn test_config_target_option() {
+        let with_target = TracingConfig::new("info").with_target(true);
+        assert!(with_target.target);
+
+        let without_target = TracingConfig::new("info").with_target(false);
+        assert!(!without_target.target);
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_builds_default_config() {
         let config = TracingConfig::default();
         assert_eq!(config.level, "info");
         assert!(!config.span_events);
+        assert!(!config.include_thread_ids);
+        assert!(!config.include_thread_names);
         assert!(config.target);
     }
 
+    // Traces to: FR-OBS-001
     #[test]
-    fn config_builders_work() {
+    fn test_config_builders_work() {
         let config = TracingConfig::new("debug")
             .with_span_events(true)
             .with_thread_ids(true)
@@ -171,6 +303,40 @@ mod tests {
         assert!(config.include_thread_ids);
         assert!(config.include_thread_names);
         assert!(!config.target);
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_builder_partial_options() {
+        let config = TracingConfig::new("warn").with_span_events(true);
+        assert_eq!(config.level, "warn");
+        assert!(config.span_events);
+        assert!(!config.include_thread_ids);
+        assert!(config.target);
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_clone() {
+        let config1 = TracingConfig::new("debug").with_span_events(true);
+        let config2 = config1.clone();
+        assert_eq!(config1, config2);
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_equality() {
+        let config1 = TracingConfig::new("info");
+        let config2 = TracingConfig::new("info");
+        assert_eq!(config1, config2);
+    }
+
+    // Traces to: FR-OBS-001
+    #[test]
+    fn test_config_inequality() {
+        let config1 = TracingConfig::new("info");
+        let config2 = TracingConfig::new("debug");
+        assert_ne!(config1, config2);
     }
 }
 

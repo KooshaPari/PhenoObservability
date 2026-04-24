@@ -125,18 +125,108 @@ impl Drop for PartitionGuard {
 mod tests {
     use super::*;
 
+    // Traces to: FR-OBS-031
+    #[tokio::test]
+    async fn test_bulkhead_partition_limit() {
+        let bulkhead = Bulkhead::new(3, 2);
+        let _guard1 = bulkhead.try_acquire(0).await.unwrap();
+        let _guard2 = bulkhead.try_acquire(0).await.unwrap();
+        let result = bulkhead.try_acquire(0).await;
+        assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
+    }
+
+    // Traces to: FR-OBS-032
+    #[tokio::test]
+    async fn test_bulkhead_guard_creation() {
+        let bulkhead = Bulkhead::new(3, 2);
+        let guard = bulkhead.try_acquire(0).await;
+        assert!(guard.is_ok());
+        assert_eq!(bulkhead.usage(0).await, 1);
+    }
+
+    // Traces to: FR-OBS-033
+    #[tokio::test]
+    async fn test_bulkhead_guard_release() {
+        let bulkhead = Bulkhead::new(3, 2);
+        {
+            let _guard = bulkhead.try_acquire(0).await.unwrap();
+            assert_eq!(bulkhead.usage(0).await, 1);
+        }
+        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+        assert_eq!(bulkhead.usage(0).await, 0);
+    }
+
+    // Traces to: FR-OBS-033
     #[tokio::test]
     async fn test_bulkhead_acquire_release() {
         let bulkhead = Bulkhead::new(3, 2);
         {
             let _guard = bulkhead.try_acquire(0).await.unwrap();
-            assert_eq!(bulkhead.usage(0).await, 1); // Guard held
+            assert_eq!(bulkhead.usage(0).await, 1);
         }
-        // Guard dropped, release scheduled - wait for it
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
         assert_eq!(bulkhead.usage(0).await, 0);
     }
 
+    // Traces to: FR-OBS-034
+    #[tokio::test]
+    async fn test_bulkhead_multi_partition_isolation() {
+        let bulkhead = Bulkhead::new(2, 2);
+        let _g0 = bulkhead.try_acquire(0).await.unwrap();
+        let _g1 = bulkhead.try_acquire(1).await.unwrap();
+        assert_eq!(bulkhead.usage(0).await, 1);
+        assert_eq!(bulkhead.usage(1).await, 1);
+    }
+
+    // Traces to: FR-OBS-034
+    #[tokio::test]
+    async fn test_bulkhead_prevent_over_allocation() {
+        let bulkhead = Bulkhead::new(2, 1);
+        let _guard1 = bulkhead.try_acquire(0).await.unwrap();
+        let _guard2 = bulkhead.try_acquire(1).await.unwrap();
+        let result = bulkhead.try_acquire(0).await;
+        assert!(matches!(
+            result,
+            Err(BulkheadError::TotalExhausted) | Err(BulkheadError::PartitionExhausted(0))
+        ));
+    }
+
+    // Traces to: FR-OBS-035
+    #[test]
+    fn test_bulkhead_config_validation() {
+        let bulkhead = Bulkhead::new(3, 5);
+        assert_eq!(bulkhead.partition_capacity(), 5);
+        assert_eq!(bulkhead.total_capacity(), 15);
+    }
+
+    // Traces to: FR-OBS-036
+    #[tokio::test]
+    async fn test_bulkhead_concurrent_access() {
+        let bulkhead = Bulkhead::new(5, 10);
+        let mut handles = vec![];
+        for partition in 0..5 {
+            let bh = Arc::clone(&bulkhead);
+            let handle = tokio::spawn(async move {
+                bh.try_acquire(partition).await.ok()
+            });
+            handles.push(handle);
+        }
+        for handle in handles {
+            let _ = handle.await;
+        }
+        assert!(bulkhead.total_usage().await > 0);
+    }
+
+    // Traces to: FR-OBS-037
+    #[tokio::test]
+    async fn test_bulkhead_exhausted_error() {
+        let bulkhead = Bulkhead::new(1, 1);
+        let _guard = bulkhead.try_acquire(0).await.unwrap();
+        let result = bulkhead.try_acquire(0).await;
+        assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
+    }
+
+    // Traces to: FR-OBS-037
     #[tokio::test]
     async fn test_bulkhead_partition_exhausted() {
         let bulkhead = Bulkhead::new(2, 1);
@@ -145,17 +235,50 @@ mod tests {
         assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
     }
 
+    // Traces to: FR-OBS-031
     #[tokio::test]
     async fn test_bulkhead_total_exhausted() {
         let bulkhead = Bulkhead::new(2, 1);
         let _guard1 = bulkhead.try_acquire(0).await.unwrap();
         let _guard2 = bulkhead.try_acquire(1).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        // Total capacity is 2, so third acquire should fail
-        // Could be either TotalExhausted or PartitionExhausted since partition 0 is also at capacity
         assert!(matches!(
             result,
             Err(BulkheadError::TotalExhausted) | Err(BulkheadError::PartitionExhausted(0))
         ));
+    }
+
+    // Traces to: FR-OBS-032
+    #[tokio::test]
+    async fn test_bulkhead_multiple_guards() {
+        let bulkhead = Bulkhead::new(3, 3);
+        let _g1 = bulkhead.try_acquire(0).await.unwrap();
+        let _g2 = bulkhead.try_acquire(0).await.unwrap();
+        let _g3 = bulkhead.try_acquire(0).await.unwrap();
+        assert_eq!(bulkhead.usage(0).await, 3);
+    }
+
+    // Traces to: FR-OBS-034
+    #[tokio::test]
+    async fn test_bulkhead_isolation_between_partitions() {
+        let bulkhead = Bulkhead::new(3, 5);
+        for p in 0..3 {
+            bulkhead.try_acquire(p).await.ok();
+        }
+        assert_eq!(bulkhead.total_usage().await, 3);
+    }
+
+    // Traces to: FR-OBS-031
+    #[tokio::test]
+    async fn test_bulkhead_capacity_per_partition() {
+        let bulkhead = Bulkhead::new(2, 3);
+        assert_eq!(bulkhead.partition_capacity(), 3);
+    }
+
+    // Traces to: FR-OBS-031
+    #[tokio::test]
+    async fn test_bulkhead_total_capacity() {
+        let bulkhead = Bulkhead::new(4, 5);
+        assert_eq!(bulkhead.total_capacity(), 20);
     }
 }

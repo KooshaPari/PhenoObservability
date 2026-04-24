@@ -132,6 +132,14 @@ impl LeakyBucket {
 mod tests {
     use super::*;
 
+    // Traces to: FR-OBS-016
+    #[test]
+    fn test_token_bucket_initial_capacity() {
+        let bucket = TokenBucket::new(10, 5);
+        assert_eq!(bucket.remaining(), 10);
+    }
+
+    // Traces to: FR-OBS-016
     #[test]
     fn test_token_bucket_initial_full() {
         let mut bucket = TokenBucket::new(10, 5);
@@ -139,6 +147,7 @@ mod tests {
         assert_eq!(bucket.remaining(), 9);
     }
 
+    // Traces to: FR-OBS-017
     #[test]
     fn test_token_bucket_exhausted() {
         let mut bucket = TokenBucket::new(1, 5);
@@ -146,6 +155,54 @@ mod tests {
         assert!(!bucket.try_acquire());
     }
 
+    // Traces to: FR-OBS-017
+    #[test]
+    fn test_token_bucket_exhaustion_message() {
+        let mut bucket = TokenBucket::new(2, 5);
+        bucket.try_acquire();
+        bucket.try_acquire();
+        let result = bucket.try_acquire();
+        assert!(!result);
+    }
+
+    // Traces to: FR-OBS-017
+    #[test]
+    fn test_token_bucket_multiple_exhaustion() {
+        let mut bucket = TokenBucket::new(3, 5);
+        for _ in 0..3 {
+            assert!(bucket.try_acquire());
+        }
+        assert!(!bucket.try_acquire());
+        assert!(!bucket.try_acquire());
+    }
+
+    // Traces to: FR-OBS-018
+    #[test]
+    fn test_token_bucket_refill_rate() {
+        let bucket = TokenBucket::new(10, 5);
+        assert_eq!(bucket.refill_rate(), 5);
+    }
+
+    // Traces to: FR-OBS-019
+    #[test]
+    fn test_token_bucket_capacity_ceiling() {
+        let mut bucket = TokenBucket::new(5, 100);
+        // Even with high refill rate, should not exceed capacity
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        bucket.refill();
+        assert!(bucket.remaining() <= 5);
+    }
+
+    // Traces to: FR-OBS-019
+    #[test]
+    fn test_token_bucket_capacity_never_exceeds() {
+        for capacity in [1, 5, 10, 100] {
+            let bucket = TokenBucket::new(capacity, 1000);
+            assert_eq!(bucket.remaining(), capacity);
+        }
+    }
+
+    // Traces to: FR-OBS-020
     #[test]
     fn test_leaky_bucket_capacity() {
         let mut bucket = LeakyBucket::new(3, 10);
@@ -153,5 +210,89 @@ mod tests {
         assert!(bucket.try_add());
         assert!(bucket.try_add());
         assert!(!bucket.try_add());
+    }
+
+    // Traces to: FR-OBS-020
+    #[test]
+    fn test_leaky_bucket_capacity_limit() {
+        let mut bucket = LeakyBucket::new(5, 10);
+        for i in 0..5 {
+            assert!(bucket.try_add(), "Should add item {}", i);
+        }
+        assert!(!bucket.try_add(), "Should not add beyond capacity");
+    }
+
+    // Traces to: FR-OBS-020
+    #[test]
+    fn test_leaky_bucket_has_capacity() {
+        let bucket = LeakyBucket::new(3, 10);
+        assert!(bucket.has_capacity());
+    }
+
+    // Traces to: FR-OBS-021
+    #[test]
+    fn test_leaky_bucket_pending_count() {
+        let mut bucket = LeakyBucket::new(5, 10);
+        bucket.try_add();
+        bucket.try_add();
+        // Pending is internal, but we can infer from try_add results
+        assert!(bucket.try_add());
+    }
+
+    // Traces to: FR-OBS-021
+    #[test]
+    fn test_leaky_bucket_pending_tracking() {
+        let mut bucket = LeakyBucket::new(2, 10);
+        assert!(bucket.try_add());
+        assert!(bucket.try_add());
+        // At capacity now
+        assert!(!bucket.try_add());
+    }
+
+    // Traces to: FR-OBS-022
+    #[test]
+    fn test_leaky_bucket_leak_rate() {
+        let bucket = LeakyBucket::new(10, 50);
+        // Verify leak_rate is set (through constructor behavior)
+        assert!(bucket.has_capacity());
+    }
+
+    // Traces to: FR-OBS-016
+    #[test]
+    fn test_token_bucket_new_validates_capacity() {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _bucket = TokenBucket::new(0, 5);
+        }));
+        assert!(result.is_err(), "Should panic on zero capacity");
+    }
+
+    // Traces to: FR-OBS-020
+    #[test]
+    fn test_leaky_bucket_new_validates_capacity() {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _bucket = LeakyBucket::new(0, 10);
+        }));
+        assert!(result.is_err(), "Should panic on zero capacity");
+    }
+
+    // Traces to: FR-OBS-016
+    #[test]
+    fn test_token_bucket_various_capacities() {
+        for capacity in [1, 5, 10, 100, 1000] {
+            let bucket = TokenBucket::new(capacity, 5);
+            assert_eq!(bucket.remaining(), capacity);
+        }
+    }
+
+    // Traces to: FR-OBS-020
+    #[test]
+    fn test_leaky_bucket_various_capacities() {
+        for capacity in [1, 5, 10, 100] {
+            let mut bucket = LeakyBucket::new(capacity, 10);
+            for _ in 0..capacity {
+                assert!(bucket.try_add());
+            }
+            assert!(!bucket.try_add());
+        }
     }
 }

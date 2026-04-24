@@ -78,6 +78,43 @@ crates/
 └── tracingkit/           # Tracing toolkit
 ```
 
+## Testing
+
+### Run All Tests
+
+```bash
+cargo test --workspace
+```
+
+### Run Library Tests Only
+
+```bash
+cargo test --workspace --lib
+```
+
+### Run Tests for Specific Crate
+
+```bash
+cargo test -p pheno-tracing
+cargo test -p tracely-sentinel
+cargo test -p helix-logging
+```
+
+### Test Coverage
+
+Generate test coverage report (requires `tarpaulin`):
+
+```bash
+cargo install cargo-tarpaulin
+cargo tarpaulin --workspace --lib --out=Html
+```
+
+Coverage target: **80%+ on all crates**
+
+### Documentation
+
+See `docs/FUNCTIONAL_REQUIREMENTS.md` for complete traceability matrix mapping tests to functional requirements.
+
 ## License
 
 MIT OR Apache-2.0
