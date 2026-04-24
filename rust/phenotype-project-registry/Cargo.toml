@@ -5,6 +5,10 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Placeholder stub for phenotype project registry (precursor to PhenoObs workspace dedupe)"
 
+# Exclude from the root workspace while the rust/ subtree is still
+# orphaned (pre-dedupe). Removed as part of issue #50.
+[workspace]
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 thiserror = "1"
