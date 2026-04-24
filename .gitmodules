@@ -1,0 +1,6 @@
+[submodule "ObservabilityKit"]
+	path = ObservabilityKit
+	url = https://github.com/KooshaPari/ObservabilityKit.git
+[submodule "KWatch"]
+	path = KWatch
+	url = https://github.com/KooshaPari/KWatch.git
