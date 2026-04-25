@@ -74,10 +74,10 @@
 //! ```
 
 use async_trait::async_trait;
+use phenotype_error_core::{ErrorCode, GenericError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use thiserror::Error;
 use tokio::sync::RwLock;
 use tracing::debug;
 
@@ -124,16 +124,8 @@ impl std::fmt::Display for HealthStatus {
     }
 }
 
-/// Health check error types
-#[derive(Debug, Error)]
-pub enum HealthCheckError {
-    #[error("check failed: {0}")]
-    CheckFailed(String),
-    #[error("timeout waiting for check")]
-    Timeout,
-    #[error("internal error: {0}")]
-    Internal(String),
-}
+/// Type alias for health check results using canonical error type
+pub type HealthCheckError = GenericError;
 
 /// Trait for implementing health checks
 #[async_trait]
