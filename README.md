@@ -1,8 +1,10 @@
 # PhenoObservability
 
-**Comprehensive observability infrastructure for Phenotype - metrics, tracing, logging, and alerting.**
+Comprehensive observability infrastructure for Phenotype — distributed tracing, metrics, structured logging, and alerting. Built as a Rust + Python monorepo providing pluggable observability backends for the entire Phenotype ecosystem.
 
-A monorepo containing multiple observability crates with implementations in Rust and Python.
+## Overview
+
+PhenoObservability provides production-grade observability tooling including OpenTelemetry-based distributed tracing, Prometheus-compatible metrics collection, structured JSON logging, and multi-channel alerting. All components are designed for integration into Phenotype services with minimal overhead. Crates range from low-level instrumentation primitives to high-level dashboard integrations.
 
 ## Crates
 
@@ -78,6 +80,48 @@ crates/
 └── tracingkit/           # Tracing toolkit
 ```
 
+## Technology Stack
+
+- **Core Language**: Rust (async/await with Tokio)
+- **Python Integration**: PyO3 for native bindings
+- **Telemetry Standards**: OpenTelemetry, OTEL Protocol (OTLP)
+- **Backends**: Jaeger, Datadog, Prometheus, Grafana, SurrealDB, QuestDB
+- **Caching**: Dragonfly (Redis-compatible)
+- **Serialization**: serde + JSON for structured logs
+- **Async Runtime**: Tokio with multi-threaded scheduler
+
+## Key Features
+
+- **Zero Overhead When Disabled**: Compile-time feature flags for performance-critical paths
+- **Sampling Strategies**: Deterministic, probabilistic, and custom sampling for cost control
+- **Context Propagation**: W3C Trace Context and Jaeger propagation formats
+- **Log Correlation**: Automatic span-to-log correlation with trace IDs
+- **Custom Metrics**: Histogram, counter, gauge, and distribution collectors
+- **Alerting Pipelines**: Threshold-based, anomaly detection, escalation workflows
+- **Dashboard Export**: Pre-built Grafana dashboards for common Phenotype services
+
+## Quick Start
+
+```bash
+# Clone and enter repo
+git clone https://github.com/KooshaPari/PhenoObservability.git
+cd PhenoObservability
+
+# Review governance
+cat CLAUDE.md
+
+# Build all observability crates
+cargo build --all-features
+cargo build --release
+
+# Run comprehensive tests
+cargo test --workspace
+
+# Generate code coverage report (requires cargo-tarpaulin)
+cargo install cargo-tarpaulin
+cargo tarpaulin --workspace --lib --out=Html
+```
+
 ## Testing
 
 ### Run All Tests
@@ -100,31 +144,22 @@ cargo test -p tracely-sentinel
 cargo test -p helix-logging
 ```
 
-### Test Coverage
+### Coverage Target
 
-Generate test coverage report (requires `tarpaulin`):
+Maintain **80%+ code coverage** on all crates. See `docs/FUNCTIONAL_REQUIREMENTS.md` for complete test traceability matrix.
 
-```bash
-cargo install cargo-tarpaulin
-cargo tarpaulin --workspace --lib --out=Html
-```
+## Related Phenotype Projects
 
-Coverage target: **80%+ on all crates**
+- **[Tracera](../Tracera/)** — Distributed request tracing; primary consumer of PhenoObservability
+- **[cloud](../cloud/)** — Multi-tenant platform using observability for SLA monitoring
+- **[PhenoDevOps](../PhenoDevOps/)** — CI/CD observability and pipeline metrics
 
-### Documentation
+## Governance & Contributing
 
-See `docs/FUNCTIONAL_REQUIREMENTS.md` for complete traceability matrix mapping tests to functional requirements.
-
-## See Also
-
-Explore PhenoObservability (Observably) and other Phenotype collections at the [Collections Showcase](https://dev.phenotype.io/collections).
-
-**Sibling Collections:**
-- **[Sidekick](../Sidekick)** — AI-powered agent framework & dispatch routing
-- **[Eidolon](../Eidolon)** — Unified trait-based device automation (desktop, mobile, sandbox)
-- **[Stashly](../Stashly)** — Storage & persistence (caching, event sourcing, state machines)
-- **[Paginary](../Paginary)** — Knowledge collection (specs, tutorials, handbooks)
-- **[phenotype-shared](../phenoShared)** — Rust infrastructure toolkit (domain, application, ports)
+- **CLAUDE.md** — Project conventions, backend integration policies
+- **Functional Requirements**: [docs/FUNCTIONAL_REQUIREMENTS.md](docs/FUNCTIONAL_REQUIREMENTS.md)
+- **Operator Guide**: [docs/guides/](docs/guides/)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 
