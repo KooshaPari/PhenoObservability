@@ -115,6 +115,17 @@ Coverage target: **80%+ on all crates**
 
 See `docs/FUNCTIONAL_REQUIREMENTS.md` for complete traceability matrix mapping tests to functional requirements.
 
+## See Also
+
+Explore PhenoObservability (Observably) and other Phenotype collections at the [Collections Showcase](https://dev.phenotype.io/collections).
+
+**Sibling Collections:**
+- **[Sidekick](../Sidekick)** — AI-powered agent framework & dispatch routing
+- **[Eidolon](../Eidolon)** — Unified trait-based device automation (desktop, mobile, sandbox)
+- **[Stashly](../Stashly)** — Storage & persistence (caching, event sourcing, state machines)
+- **[Paginary](../Paginary)** — Knowledge collection (specs, tutorials, handbooks)
+- **[phenotype-shared](../phenoShared)** — Rust infrastructure toolkit (domain, application, ports)
+
 ## License
 
 MIT OR Apache-2.0
