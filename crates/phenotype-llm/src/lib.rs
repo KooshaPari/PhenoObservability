@@ -8,28 +8,18 @@
 //! - WASM plugin support
 //! - Native connection pooling
 
-use anyhow::Result;
 use async_trait::async_trait;
 use dashmap::DashMap;
+use phenotype_errors::ApiError;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum LlmError {
-    #[error("provider error: {0}")]
-    Provider(String),
-    #[error("rate limited")]
-    RateLimited,
-    #[error("timeout")]
-    Timeout,
-    #[error("invalid model: {0}")]
-    InvalidModel(String),
-}
+/// LLM result type using canonical ApiError
+pub type Result<T> = std::result::Result<T, ApiError>;
 
 #[async_trait]
 pub trait LlmProvider: Send + Sync {
-    async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse, LlmError>;
+    async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse>;
     fn provider_name(&self) -> &str;
 }
 
@@ -77,7 +67,7 @@ impl OpenAiProvider {
 
 #[async_trait]
 impl LlmProvider for OpenAiProvider {
-    async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse, LlmError> {
+    async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse> {
         let start = std::time::Instant::now();
 
         let body = serde_json::json!({
@@ -93,7 +83,7 @@ impl LlmProvider for OpenAiProvider {
             .json(&body)
             .send()
             .await
-            .map_err(|e| LlmError::Provider(e.to_string()))?;
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
 
         Ok(CompletionResponse {
             content: "response".to_string(),
@@ -131,7 +121,7 @@ impl LlmRouter {
     pub async fn complete(
         &self,
         request: &CompletionRequest,
-    ) -> Result<CompletionResponse, LlmError> {
+    ) -> Result<CompletionResponse> {
         let prefix = request.model.split('/').next().unwrap_or(&request.model);
 
         if let Some(provider) = self.providers.get(prefix) {
@@ -142,7 +132,7 @@ impl LlmRouter {
             return fallback.complete(request).await;
         }
 
-        Err(LlmError::InvalidModel(request.model.clone()))
+        Err(ApiError::BadRequest(request.model.clone()))
     }
 }
 
