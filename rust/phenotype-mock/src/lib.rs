@@ -107,7 +107,8 @@ pub struct Expectation {
 
 impl Expectation {
     /// Check if this expectation was satisfied
-    #[allow(dead_code)]
+    /// Requires `test-expectations` feature.
+    #[cfg(feature = "test-expectations")]
     fn is_satisfied(&self) -> bool {
         match self.times {
             Some(expected) => self.called_count == expected,

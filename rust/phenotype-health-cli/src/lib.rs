@@ -52,7 +52,7 @@ pub struct HealthMetrics {
 pub struct UnifiedHealthScanner {
     compliance_scanner: ComplianceScanner,
     security_aggregator: SecurityAggregator,
-    #[allow(dead_code)]
+    #[cfg(feature = "health-registry")]
     health_registry: HealthRegistry,
 }
 
@@ -62,6 +62,7 @@ impl UnifiedHealthScanner {
         Self {
             compliance_scanner: ComplianceScanner::default(),
             security_aggregator: SecurityAggregator::new(),
+            #[cfg(feature = "health-registry")]
             health_registry: HealthRegistry::new(),
         }
     }
@@ -735,6 +736,7 @@ mod tests {
     async fn test_unified_scanner_creation() {
         let scanner = UnifiedHealthScanner::new();
         // Just verify it creates without panic
+        #[cfg(feature = "health-registry")]
         assert!(scanner.health_registry.is_empty());
     }
 

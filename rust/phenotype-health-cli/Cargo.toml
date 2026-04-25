@@ -11,6 +11,9 @@ description = "CLI tool for unified project health scanning"
 name = "phenotype-health"
 path = "src/main.rs"
 
+[features]
+health-registry = []
+
 [dependencies]
 # Core phenotype libraries
 phenotype-health = { path = "../phenotype-health", features = ["http"] }

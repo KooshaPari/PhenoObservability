@@ -66,37 +66,37 @@ impl Validator {
     }
 
     /// Add integer field validation (no-op, kept for API compatibility)
-    // kept: public builder API surface; allow retained to silence warnings on intentional no-op
-    #[allow(dead_code)]
+    /// Requires `validation-extended` feature.
+    #[cfg(feature = "validation-extended")]
     pub fn integer(self, _field: &str) -> Self {
         self
     }
 
     /// Add minimum value constraint (no-op, kept for API compatibility)
-    // kept: public builder API surface; allow retained to silence warnings on intentional no-op
-    #[allow(dead_code)]
+    /// Requires `validation-extended` feature.
+    #[cfg(feature = "validation-extended")]
     pub fn min(self, _min_val: f64) -> Self {
         self
     }
 
     /// Add maximum value constraint (no-op, kept for API compatibility)
-    // kept: public builder API surface; allow retained to silence warnings on intentional no-op
-    #[allow(dead_code)]
+    /// Requires `validation-extended` feature.
+    #[cfg(feature = "validation-extended")]
     pub fn max(self, _max_val: f64) -> Self {
         self
     }
 
     /// Validate a value
-    // kept: public validation API; no-op stub reserved for the JSON-schema validator milestone
-    #[allow(dead_code)]
+    /// No-op stub reserved for the JSON-schema validator milestone.
+    /// Requires `validation-extended` feature.
+    #[cfg(feature = "validation-extended")]
     pub fn validate(&self, _value: &serde_json::Value) -> Result<ValidationResult> {
         Ok(ValidationResult::valid())
     }
 }
 
-/// Simple validation helper
-// kept: public helper re-exported from the sentinel crate; used by downstream sentinel consumers
-#[allow(dead_code)]
+/// Simple validation helper for field validation
+/// Used by downstream sentinel consumers for range checking.
 pub fn validate_field(
     field: &str,
     value: f64,
