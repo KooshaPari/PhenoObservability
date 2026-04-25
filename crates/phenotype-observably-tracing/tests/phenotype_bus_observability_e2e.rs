@@ -11,10 +11,10 @@ use phenotype_bus::{Bus, Event};
 use phenotype_observably_tracing::MetricsRegistry;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::sync::Once;
 use tokio::sync::Mutex;
 use tokio::time::{timeout, Duration};
 use tracing::info;
-use std::sync::Once;
 
 static INIT_TRACING: Once = Once::new();
 

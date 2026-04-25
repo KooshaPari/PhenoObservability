@@ -2,10 +2,10 @@
 //!
 //! Zero-cost distributed tracing with OpenTelemetry support.
 
-pub mod domain;
-pub mod application;
 pub mod adapters;
+pub mod application;
+pub mod domain;
 pub mod infrastructure;
 
-pub use domain::*;
 pub use application::*;
+pub use domain::*;

@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        init_tracing, ConnectorSpanAttrs, MetricsRegistry, RuleSpanAttrs, AuditSpanAttrs,
+        init_tracing, AuditSpanAttrs, ConnectorSpanAttrs, MetricsRegistry, RuleSpanAttrs,
         SpanPrivacyFilter,
     };
     use serde_json::json;
@@ -48,9 +48,8 @@ mod tests {
     // Traces to: FR-OBS-003
     #[test]
     fn test_audit_span_attrs_with_count() {
-        let attrs = AuditSpanAttrs::new("reward_grant".to_string())
-            .with_entry_count(42)
-            .with_duration(300);
+        let attrs =
+            AuditSpanAttrs::new("reward_grant".to_string()).with_entry_count(42).with_duration(300);
 
         assert_eq!(attrs.audit_type, "reward_grant");
         assert_eq!(attrs.entry_count, Some(42));
@@ -130,15 +129,9 @@ mod tests {
         });
 
         let output = filter.scrub_json(input);
+        assert_eq!(output.get("connector_id").and_then(|v| v.as_str()), Some("github"));
         assert_eq!(
-            output.get("connector_id").and_then(|v| v.as_str()),
-            Some("github")
-        );
-        assert_eq!(
-            output
-                .get("auth")
-                .and_then(|v| v.get("email"))
-                .and_then(|v| v.as_str()),
+            output.get("auth").and_then(|v| v.get("email")).and_then(|v| v.as_str()),
             Some("[REDACTED_EMAIL]")
         );
     }

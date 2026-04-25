@@ -1,5 +1,5 @@
 //! QuestDB client for PhenoObservability
-//! 
+//!
 //! QuestDB is a time-series database that's 100x faster than InfluxDB.
 //! Supports native SQL, Kafka ingest, and HTTP API.
 
@@ -7,14 +7,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
-use tracing::{debug, info};
+use tracing::debug;
 
 /// QuestDB client errors
 #[derive(Error, Debug)]
 pub enum QuestDBError {
     #[error("HTTP error: {0}")]
     Http(String),
-    
+
     #[error("parse error: {0}")]
     Parse(String),
 }
@@ -48,10 +48,7 @@ pub struct QuestDBClient {
 impl QuestDBClient {
     /// Create new QuestDB client
     pub fn new(url: &str) -> Self {
-        Self {
-            url: url.trim_end_matches('/').to_string(),
-            http_client: reqwest::Client::new(),
-        }
+        Self { url: url.trim_end_matches('/').to_string(), http_client: reqwest::Client::new() }
     }
 
     /// Insert metric using ILP (InfluxDB Line Protocol)
@@ -64,7 +61,8 @@ impl QuestDBClient {
             metric.timestamp.timestamp_nanos()
         );
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(format!("{}/v1/imp", self.url))
             .body(line)
             .send()
@@ -91,7 +89,8 @@ impl QuestDBClient {
             log.timestamp.timestamp_nanos()
         );
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(format!("{}/v1/imp", self.url))
             .body(line)
             .send()
@@ -107,19 +106,23 @@ impl QuestDBClient {
     }
 
     /// Execute SQL query
-    pub async fn query<T: for<'de> Deserialize<'de>>(&self, sql: &str) -> Result<Vec<T>, QuestDBError> {
+    pub async fn query<T: for<'de> Deserialize<'de>>(
+        &self,
+        sql: &str,
+    ) -> Result<Vec<T>, QuestDBError> {
         let url = format!("{}/v1/query?q={}", self.url, urlencoding::encode(sql));
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .get(&url)
             .send()
             .await
             .map_err(|e| QuestDBError::Http(e.to_string()))?;
 
         let body = response.text().await.map_err(|e| QuestDBError::Parse(e.to_string()))?;
-        
-        let result: QueryResult<T> = serde_json::from_str(&body)
-            .map_err(|e| QuestDBError::Parse(e.to_string()))?;
+
+        let result: QueryResult<T> =
+            serde_json::from_str(&body).map_err(|e| QuestDBError::Parse(e.to_string()))?;
 
         if let Some(err) = result.error {
             return Err(QuestDBError::Parse(err));
@@ -129,7 +132,11 @@ impl QuestDBClient {
     }
 
     /// Aggregate metrics
-    pub async fn aggregate(&self, name: &str, interval: &str) -> Result<Vec<AggregatedMetric>, QuestDBError> {
+    pub async fn aggregate(
+        &self,
+        name: &str,
+        interval: &str,
+    ) -> Result<Vec<AggregatedMetric>, QuestDBError> {
         let sql = format!(
             "SELECT timestamp, avg(value) as avg_value, min(value) as min_value, max(value) as max_value \
              FROM metrics WHERE name = '{}' SAMPLE BY {} ALIGN TO CALENDAR",
@@ -141,7 +148,8 @@ impl QuestDBClient {
 
     /// Format labels for ILP
     fn format_labels(labels: &HashMap<String, String>) -> String {
-        labels.iter()
+        labels
+            .iter()
             .map(|(k, v)| format!("{}={}", k, Self::escape_tag(v)))
             .collect::<Vec<_>>()
             .join(",")

@@ -1,7 +1,7 @@
 #![doc = "Dragonfly client for PhenoObservability - Redis-compatible, multi-threaded cache"]
 
 use chrono::{DateTime, Utc};
-use redis::{aio::ConnectionManager, AsyncCommands, Client};
+use redis::{AsyncCommands, Client, aio::ConnectionManager};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -50,8 +50,7 @@ impl DragonflyClient {
     /// Create new Dragonfly client
     pub async fn new(url: &str) -> Result<Self, DragonflyError> {
         info!("Connecting to Dragonfly: {}", url);
-        let client = Client::open(url)
-            .map_err(|e| DragonflyError::Connection(e.to_string()))?;
+        let client = Client::open(url).map_err(|e| DragonflyError::Connection(e.to_string()))?;
         let conn = ConnectionManager::new(client)
             .await
             .map_err(|e| DragonflyError::Connection(e.to_string()))?;
@@ -65,7 +64,8 @@ impl DragonflyClient {
         let value = serde_json::to_string(session)
             .map_err(|e| DragonflyError::Serialization(e.to_string()))?;
         let mut conn = self.conn.clone();
-        let _: () = conn.set_ex(&key, &value, session.ttl_seconds)
+        let _: () = conn
+            .set_ex(&key, &value, session.ttl_seconds)
             .await
             .map_err(|e| DragonflyError::Operation(e.to_string()))?;
         debug!("Session stored: {}", session.id);
@@ -76,9 +76,8 @@ impl DragonflyClient {
     pub async fn get_session(&self, id: &str) -> Result<Option<Session>, DragonflyError> {
         let key = format!("session:{}", id);
         let mut conn = self.conn.clone();
-        let value: Option<String> = conn.get(&key)
-            .await
-            .map_err(|e| DragonflyError::Operation(e.to_string()))?;
+        let value: Option<String> =
+            conn.get(&key).await.map_err(|e| DragonflyError::Operation(e.to_string()))?;
         match value {
             Some(v) => {
                 let session: Session = serde_json::from_str(&v)
@@ -90,9 +89,15 @@ impl DragonflyClient {
     }
 
     /// Set with custom TTL
-    pub async fn set_with_ttl(&self, key: &str, value: &[u8], ttl_seconds: u64) -> Result<(), DragonflyError> {
+    pub async fn set_with_ttl(
+        &self,
+        key: &str,
+        value: &[u8],
+        ttl_seconds: u64,
+    ) -> Result<(), DragonflyError> {
         let mut conn = self.conn.clone();
-        let _: () = conn.set_ex(key, value, ttl_seconds)
+        let _: () = conn
+            .set_ex(key, value, ttl_seconds)
             .await
             .map_err(|e| DragonflyError::Operation(e.to_string()))?;
         Ok(())
@@ -101,18 +106,16 @@ impl DragonflyClient {
     /// Get value
     pub async fn get(&self, key: &str) -> Result<Option<Vec<u8>>, DragonflyError> {
         let mut conn = self.conn.clone();
-        let value: Option<String> = conn.get(key)
-            .await
-            .map_err(|e| DragonflyError::Operation(e.to_string()))?;
+        let value: Option<String> =
+            conn.get(key).await.map_err(|e| DragonflyError::Operation(e.to_string()))?;
         Ok(value.map(|v| v.into_bytes()))
     }
 
     /// Increment counter (atomic)
     pub async fn incr(&self, key: &str, amount: i64) -> Result<i64, DragonflyError> {
         let mut conn = self.conn.clone();
-        let result: i64 = conn.incr(key, amount)
-            .await
-            .map_err(|e| DragonflyError::Operation(e.to_string()))?;
+        let result: i64 =
+            conn.incr(key, amount).await.map_err(|e| DragonflyError::Operation(e.to_string()))?;
         Ok(result)
     }
 

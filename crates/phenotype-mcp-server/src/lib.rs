@@ -1,9 +1,9 @@
 //! PhenotypeMCPServer - MCP Protocol Server inspired by fastmcp
 
-use std::collections::HashMap;
-use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
+use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
@@ -68,29 +68,32 @@ impl MCPServer {
         }
     }
 
-    pub async fn register_tool<F>(&self, name: String, description: String, schema: Value, handler: F)
-    where
+    pub async fn register_tool<F>(
+        &self,
+        name: String,
+        description: String,
+        schema: Value,
+        handler: F,
+    ) where
         F: Fn(Value) -> Result<Value, MCPServerError> + Send + Sync + 'static,
     {
-        let tool = Tool {
-            name: name.clone(),
-            description,
-            input_schema: schema,
-        };
-        self.tools.write().await.insert(name, ToolHandler {
-            tool,
-            handler: Arc::new(handler),
-        });
+        let tool = Tool { name: name.clone(), description, input_schema: schema };
+        self.tools.write().await.insert(name, ToolHandler { tool, handler: Arc::new(handler) });
     }
 
     pub async fn list_tools(&self) -> Vec<Tool> {
         self.tools.read().await.values().map(|h| h.tool.clone()).collect()
     }
 
-    pub async fn call_tool(&self, name: &str, arguments: Value) -> Result<ToolResult, MCPServerError> {
+    pub async fn call_tool(
+        &self,
+        name: &str,
+        arguments: Value,
+    ) -> Result<ToolResult, MCPServerError> {
         let tools = self.tools.read().await;
         let handler = tools.get(name).ok_or(MCPServerError::ToolNotFound(name.to_string()))?;
-        let result = (handler.handler)(arguments).map_err(|e| MCPServerError::HandlerFailed(e.to_string()))?;
+        let result = (handler.handler)(arguments)
+            .map_err(|e| MCPServerError::HandlerFailed(e.to_string()))?;
         Ok(ToolResult {
             content: vec![ContentItem {
                 content_type: "text".to_string(),
@@ -110,7 +113,8 @@ impl MCPServer {
 
     pub async fn read_resource(&self, uri: &str) -> Result<ResourceContent, MCPServerError> {
         let resources = self.resources.read().await;
-        let resource = resources.get(uri).ok_or(MCPServerError::ResourceNotFound(uri.to_string()))?;
+        let resource =
+            resources.get(uri).ok_or(MCPServerError::ResourceNotFound(uri.to_string()))?;
         Ok(ResourceContent {
             uri: uri.to_string(),
             text: Some(format!("Resource: {}", resource.name)),
@@ -137,12 +141,14 @@ mod tests {
     #[tokio::test]
     async fn test_register_and_call() {
         let server = MCPServer::new();
-        server.register_tool(
-            "echo".to_string(),
-            "Echo back input".to_string(),
-            serde_json::json!({"type": "object"}),
-            |args| Ok(args),
-        ).await;
+        server
+            .register_tool(
+                "echo".to_string(),
+                "Echo back input".to_string(),
+                serde_json::json!({"type": "object"}),
+                |args| Ok(args),
+            )
+            .await;
         assert_eq!(server.list_tools().await.len(), 1);
         let result = server.call_tool("echo", serde_json::json!({"test": "value"})).await.unwrap();
         assert!(!result.is_error);

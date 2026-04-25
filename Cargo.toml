@@ -3,7 +3,6 @@ resolver = "2"
 members = [
     "crates/pheno-dragonfly",
     "crates/pheno-questdb",
-    "crates/pheno-tracing",
     "crates/phenotype-llm",
     "crates/phenotype-mcp-server",
     "crates/phenotype-surrealdb",
@@ -14,6 +13,7 @@ members = [
     "crates/phenotype-observably-tracing",
     "crates/phenotype-observably-logging",
     "crates/phenotype-observably-sentinel",
+    "crates/phenotype-observably-macros",
 ]
 
 [workspace.package]

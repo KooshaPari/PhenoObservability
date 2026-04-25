@@ -4,9 +4,7 @@
 //! Counters and histograms are thread-safe and can be incremented from any span context.
 
 use parking_lot::RwLock;
-use prometheus::{
-    HistogramVec, IntCounterVec, Registry,
-};
+use prometheus::{HistogramVec, IntCounterVec, Registry};
 use std::sync::Arc;
 use tracing::error;
 
@@ -31,18 +29,12 @@ impl MetricsRegistry {
         let registry = Arc::new(RwLock::new(Registry::new()));
 
         let connector_syncs = IntCounterVec::new(
-            prometheus::Opts::new(
-                "connector_syncs_total",
-                "Total connector sync operations",
-            ),
+            prometheus::Opts::new("connector_syncs_total", "Total connector sync operations"),
             &["connector_id"],
         )?;
 
         let rule_evaluations = IntCounterVec::new(
-            prometheus::Opts::new(
-                "rule_evaluations_total",
-                "Total rule evaluations",
-            ),
+            prometheus::Opts::new("rule_evaluations_total", "Total rule evaluations"),
             &["rule_id"],
         )?;
 
@@ -109,37 +101,27 @@ impl MetricsRegistry {
 
     /// Increment connector sync counter.
     pub fn inc_connector_syncs(&self, connector_id: &str, amount: f64) {
-        self.connector_syncs
-            .with_label_values(&[connector_id])
-            .inc_by((amount as u64).max(1));
+        self.connector_syncs.with_label_values(&[connector_id]).inc_by((amount as u64).max(1));
     }
 
     /// Increment rule evaluation counter.
     pub fn inc_rule_evaluations(&self, rule_id: &str, amount: f64) {
-        self.rule_evaluations
-            .with_label_values(&[rule_id])
-            .inc_by((amount as u64).max(1));
+        self.rule_evaluations.with_label_values(&[rule_id]).inc_by((amount as u64).max(1));
     }
 
     /// Increment audit append counter.
     pub fn inc_audit_appends(&self, audit_type: &str, amount: f64) {
-        self.audit_appends
-            .with_label_values(&[audit_type])
-            .inc_by((amount as u64).max(1));
+        self.audit_appends.with_label_values(&[audit_type]).inc_by((amount as u64).max(1));
     }
 
     /// Record connector sync duration (in seconds).
     pub fn record_sync_duration(&self, connector_id: &str, duration_secs: f64) {
-        self.sync_duration
-            .with_label_values(&[connector_id])
-            .observe(duration_secs);
+        self.sync_duration.with_label_values(&[connector_id]).observe(duration_secs);
     }
 
     /// Record rule evaluation duration (in seconds).
     pub fn record_eval_duration(&self, rule_id: &str, duration_secs: f64) {
-        self.eval_duration
-            .with_label_values(&[rule_id])
-            .observe(duration_secs);
+        self.eval_duration.with_label_values(&[rule_id]).observe(duration_secs);
     }
 
     /// Export metrics in Prometheus text format.
@@ -220,10 +202,7 @@ mod tests {
         let m2 = MetricsRegistry::global();
 
         // Both should be the same instance
-        assert_eq!(
-            Arc::as_ptr(&m1) as *const _,
-            Arc::as_ptr(&m2) as *const _
-        );
+        assert_eq!(Arc::as_ptr(&m1) as *const _, Arc::as_ptr(&m2) as *const _);
     }
 
     // Traces to: FR-OBS-004

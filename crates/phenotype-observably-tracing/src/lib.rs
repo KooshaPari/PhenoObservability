@@ -58,9 +58,7 @@ mod integration_tests;
 
 pub use metrics::MetricsRegistry;
 pub use privacy_filter::SpanPrivacyFilter;
-pub use spans::{
-    AuditSpanAttrs, ConnectorSpanAttrs, RuleSpanAttrs, SpanKind, WalletSpanAttrs,
-};
+pub use spans::{AuditSpanAttrs, ConnectorSpanAttrs, RuleSpanAttrs, SpanKind, WalletSpanAttrs};
 
 /// Initialize tracing with JSON or pretty console output.
 /// Honors `RUST_LOG` and `FOCALPOINT_LOG_LEVEL` env vars.
@@ -72,20 +70,16 @@ pub fn init_tracing(service_name: &str, log_level: Option<&str>) {
         .or_else(|| std::env::var("FOCALPOINT_LOG_LEVEL").ok())
         .unwrap_or_else(|| "info".to_string());
 
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(level_str.as_str()));
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level_str.as_str()));
 
-    let format_str = std::env::var("FOCALPOINT_LOG_FORMAT")
-        .unwrap_or_else(|_| "json".to_string());
+    let format_str = std::env::var("FOCALPOINT_LOG_FORMAT").unwrap_or_else(|_| "json".to_string());
 
     let registry = tracing_subscriber::registry().with(env_filter);
 
     if format_str == "pretty" {
-        let fmt_layer = fmt::layer()
-            .pretty()
-            .with_thread_ids(true)
-            .with_file(true)
-            .with_line_number(true);
+        let fmt_layer =
+            fmt::layer().pretty().with_thread_ids(true).with_file(true).with_line_number(true);
 
         registry.with(fmt_layer).init();
     } else {

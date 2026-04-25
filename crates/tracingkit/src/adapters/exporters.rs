@@ -41,9 +41,7 @@ pub struct MemoryExporter {
 
 impl MemoryExporter {
     pub fn new() -> Self {
-        Self {
-            spans: std::sync::Arc::new(parking_lot::RwLock::new(Vec::new())),
-        }
+        Self { spans: std::sync::Arc::new(parking_lot::RwLock::new(Vec::new())) }
     }
 
     pub fn spans(&self) -> Vec<Span> {

@@ -1,7 +1,7 @@
 //! PhenotypeLLM - LLM Router inspired by litellm
 //!
 //! Fork of BerriAI/litellm (7.8k stars)
-//! 
+//!
 //! Key additions:
 //! - Rust core for routing (10x faster)
 //! - Multi-tenant cost tracking
@@ -71,10 +71,7 @@ pub struct OpenAiProvider {
 
 impl OpenAiProvider {
     pub fn new(api_key: String) -> Self {
-        Self {
-            api_key,
-            client: reqwest::Client::new(),
-        }
+        Self { api_key, client: reqwest::Client::new() }
     }
 }
 
@@ -82,14 +79,15 @@ impl OpenAiProvider {
 impl LlmProvider for OpenAiProvider {
     async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse, LlmError> {
         let start = std::time::Instant::now();
-        
+
         let body = serde_json::json!({
             "model": request.model,
             "messages": request.messages,
             "temperature": request.temperature.unwrap_or(0.7),
         });
 
-        let _response = self.client
+        let _response = self
+            .client
             .post("https://api.openai.com/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&body)
@@ -101,11 +99,7 @@ impl LlmProvider for OpenAiProvider {
             content: "response".to_string(),
             model: request.model.clone(),
             provider: self.provider_name().to_string(),
-            usage: TokenUsage {
-                prompt_tokens: 0,
-                completion_tokens: 0,
-                total_tokens: 0,
-            },
+            usage: TokenUsage { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
             latency_ms: start.elapsed().as_millis() as u64,
         })
     }
@@ -123,10 +117,7 @@ pub struct LlmRouter {
 
 impl LlmRouter {
     pub fn new() -> Self {
-        Self {
-            providers: DashMap::new(),
-            fallback: std::sync::RwLock::new(None),
-        }
+        Self { providers: DashMap::new(), fallback: std::sync::RwLock::new(None) }
     }
 
     pub fn register_provider(&self, prefix: &str, provider: Arc<dyn LlmProvider>) {
@@ -137,17 +128,20 @@ impl LlmRouter {
         *self.fallback.write().unwrap() = Some(provider);
     }
 
-    pub async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse, LlmError> {
+    pub async fn complete(
+        &self,
+        request: &CompletionRequest,
+    ) -> Result<CompletionResponse, LlmError> {
         let prefix = request.model.split('/').next().unwrap_or(&request.model);
-        
+
         if let Some(provider) = self.providers.get(prefix) {
             return provider.complete(request).await;
         }
-        
+
         if let Some(fallback) = self.fallback.read().unwrap().as_ref() {
             return fallback.complete(request).await;
         }
-        
+
         Err(LlmError::InvalidModel(request.model.clone()))
     }
 }

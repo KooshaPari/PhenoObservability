@@ -39,10 +39,7 @@ impl Default for TracingConfig {
 impl TracingConfig {
     /// Create a config with the given level string; all other fields use defaults.
     pub fn new(level: impl Into<String>) -> Self {
-        Self {
-            level: level.into(),
-            ..Self::default()
-        }
+        Self { level: level.into(), ..Self::default() }
     }
 
     /// Toggle span enter/exit events.
@@ -81,18 +78,14 @@ pub fn init_tracing(config: TracingConfig) -> Result<(), tracing_subscriber::uti
 pub fn build_subscriber(
     config: &TracingConfig,
 ) -> impl ::tracing::Subscriber + Send + Sync + 'static {
-    let filter = EnvFilter::try_new(config.level.as_str())
-        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let filter =
+        EnvFilter::try_new(config.level.as_str()).unwrap_or_else(|_| EnvFilter::new("info"));
 
     let fmt_layer = tracing_subscriber::fmt::layer()
         .with_target(config.target)
         .with_thread_ids(config.include_thread_ids)
         .with_thread_names(config.include_thread_names)
-        .with_span_events(if config.span_events {
-            FmtSpan::FULL
-        } else {
-            FmtSpan::NONE
-        });
+        .with_span_events(if config.span_events { FmtSpan::FULL } else { FmtSpan::NONE });
 
     tracing_subscriber::registry().with(filter).with(fmt_layer)
 }
@@ -140,10 +133,7 @@ pub struct TraceContext {
 impl TraceContext {
     /// Create a new context with freshly-generated IDs.
     pub fn new() -> Self {
-        Self {
-            trace_id: trace_id(),
-            span_id: span_id(),
-        }
+        Self { trace_id: trace_id(), span_id: span_id() }
     }
 }
 

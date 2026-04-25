@@ -79,9 +79,7 @@ pub struct LogContext {
 impl LogContext {
     /// Create a new context. If `id` is `None`, a UUID v4 is generated.
     pub fn new(id: Option<String>) -> Self {
-        Self {
-            correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
-        }
+        Self { correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()) }
     }
 }
 

@@ -206,9 +206,7 @@ mod tests {
         let mut handles = vec![];
         for partition in 0..5 {
             let bh = Arc::clone(&bulkhead);
-            let handle = tokio::spawn(async move {
-                bh.try_acquire(partition).await.ok()
-            });
+            let handle = tokio::spawn(async move { bh.try_acquire(partition).await.ok() });
             handles.push(handle);
         }
         for handle in handles {

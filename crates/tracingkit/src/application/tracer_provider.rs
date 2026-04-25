@@ -1,7 +1,7 @@
 //! Tracer Provider - Use Case
 
-use std::sync::Arc;
 use async_trait::async_trait;
+use std::sync::Arc;
 
 use crate::domain::*;
 
@@ -60,9 +60,7 @@ impl TracerProvider {
     }
 
     pub fn tracer(&self) -> TracerInstance<'_> {
-        TracerInstance {
-            provider: self,
-        }
+        TracerInstance { provider: self }
     }
 
     pub fn sampler(&self) -> &dyn Sampler {

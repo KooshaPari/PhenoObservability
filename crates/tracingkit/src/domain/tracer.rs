@@ -2,7 +2,7 @@
 
 use async_trait::async_trait;
 
-use super::{SpanKind, SpanContext};
+use super::{SpanContext, SpanKind};
 
 /// Tracer trait - primary port
 #[async_trait]
@@ -39,9 +39,7 @@ pub struct SpanHandleImpl {
 
 impl SpanHandleImpl {
     pub fn new(span: super::Span) -> Self {
-        Self {
-            inner: std::sync::Mutex::new(span),
-        }
+        Self { inner: std::sync::Mutex::new(span) }
     }
 }
 
@@ -75,11 +73,7 @@ pub struct ScopedSpan<'a> {
 impl<'a> ScopedSpan<'a> {
     pub fn new(tracer: &'a dyn Tracer, name: &str) -> Self {
         let span = tracer.span(name);
-        Self {
-            tracer,
-            name: name.to_string(),
-            span,
-        }
+        Self { tracer, name: name.to_string(), span }
     }
 
     pub fn with_attribute(self, key: &str, value: super::AttributeValue) -> Self {

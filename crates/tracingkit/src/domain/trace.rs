@@ -1,7 +1,7 @@
 //! Trace - Domain Entity
 
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 use super::Span;
 
@@ -16,12 +16,7 @@ pub struct Trace {
 
 impl Trace {
     pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            spans: Vec::new(),
-            start_time: Utc::now(),
-            end_time: None,
-        }
+        Self { id: Uuid::new_v4(), spans: Vec::new(), start_time: Utc::now(), end_time: None }
     }
 
     pub fn add_span(&mut self, span: Span) {

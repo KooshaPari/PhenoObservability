@@ -1,7 +1,7 @@
 //! PhenotypeSurrealDB - SurrealDB fork with Pheno extensions
 //!
 //! Forked from surrealdb/surrealdb (29k stars)
-//! 
+//!
 //! Additions for Pheno:
 //! - MCP protocol adapter
 //! - Skill storage schema
@@ -18,9 +18,7 @@ pub struct PhenoSurreal {
 impl PhenoSurreal {
     /// Create new PhenoSurreal instance
     pub async fn new(path: impl Into<String>) -> Result<Self> {
-        Ok(Self {
-            path: path.into(),
-        })
+        Ok(Self { path: path.into() })
     }
 
     /// Store a skill
@@ -95,7 +93,7 @@ mod tests {
     #[tokio::test]
     async fn test_skill_storage() -> Result<()> {
         let db = PhenoSurreal::new("/tmp/test.db").await?;
-        
+
         let skill = Skill {
             id: None,
             name: "test-skill".to_string(),
@@ -104,10 +102,10 @@ mod tests {
             runtime: "wasm".to_string(),
             metadata: serde_json::json!({}),
         };
-        
+
         let result = db.store_skill(skill).await?;
         assert_eq!(result.name, "test-skill");
-        
+
         Ok(())
     }
 }

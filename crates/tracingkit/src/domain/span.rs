@@ -113,23 +113,33 @@ pub enum AttributeValue {
 }
 
 impl From<String> for AttributeValue {
-    fn from(s: String) -> Self { AttributeValue::String(s) }
+    fn from(s: String) -> Self {
+        AttributeValue::String(s)
+    }
 }
 
 impl From<&str> for AttributeValue {
-    fn from(s: &str) -> Self { AttributeValue::String(s.to_string()) }
+    fn from(s: &str) -> Self {
+        AttributeValue::String(s.to_string())
+    }
 }
 
 impl From<i64> for AttributeValue {
-    fn from(n: i64) -> Self { AttributeValue::I64(n) }
+    fn from(n: i64) -> Self {
+        AttributeValue::I64(n)
+    }
 }
 
 impl From<f64> for AttributeValue {
-    fn from(f: f64) -> Self { AttributeValue::F64(f) }
+    fn from(f: f64) -> Self {
+        AttributeValue::F64(f)
+    }
 }
 
 impl From<bool> for AttributeValue {
-    fn from(b: bool) -> Self { AttributeValue::Bool(b) }
+    fn from(b: bool) -> Self {
+        AttributeValue::Bool(b)
+    }
 }
 
 /// Span event
