@@ -7,7 +7,6 @@ rust-version.workspace = true
 
 [dependencies]
 phenotype-bus = { path = "../../../phenotype-bus" }
-phenotype-error-core.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }

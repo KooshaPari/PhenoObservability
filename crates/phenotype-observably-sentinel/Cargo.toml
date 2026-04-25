@@ -8,6 +8,5 @@ repository.workspace = true
 
 [dependencies]
 phenotype-bus = { path = "../../../phenotype-bus" }
-phenotype-error-core.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
