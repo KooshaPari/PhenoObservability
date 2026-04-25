@@ -9,6 +9,7 @@
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use phenotype_observably_macros::async_instrumented;
 
 /// PhenoSurreal - SurrealDB wrapper with Pheno extensions
 pub struct PhenoSurreal {
@@ -17,11 +18,13 @@ pub struct PhenoSurreal {
 
 impl PhenoSurreal {
     /// Create new PhenoSurreal instance
+    #[async_instrumented]
     pub async fn new(path: impl Into<String>) -> Result<Self> {
         Ok(Self { path: path.into() })
     }
 
     /// Store a skill
+    #[async_instrumented]
     pub async fn store_skill(&self, skill: Skill) -> Result<SkillRecord> {
         Ok(SkillRecord {
             id: format!("skill:{}", skill.name),
@@ -34,11 +37,13 @@ impl PhenoSurreal {
     }
 
     /// Query all skills
+    #[async_instrumented]
     pub async fn query_skills(&self) -> Result<Vec<SkillRecord>> {
         Ok(vec![])
     }
 
     /// Store vector embedding
+    #[async_instrumented]
     pub async fn store_embedding(&self, embedding: Embedding) -> Result<EmbeddingRecord> {
         Ok(EmbeddingRecord {
             id: format!("embedding:{}", embedding.id.unwrap_or_default()),
