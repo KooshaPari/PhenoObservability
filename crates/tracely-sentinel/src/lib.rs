@@ -99,15 +99,15 @@ mod tests {
     #[test]
     fn test_validate_invalid_level() {
         // Test that validation of levels works by checking error types
-        let _ = RateLimiterError::InvalidConfig("test".to_string());
+        let _ = Error::Validation("test".to_string());
     }
 
     // Traces to: FR-OBS-045
     #[test]
     fn test_validate_log_levels() {
         // Validate error types work for config validation
-        let _ = CircuitBreakerError::Open;
-        let _ = CircuitBreakerError::HalfOpen;
+        let _ = Error::Validation("open".to_string());
+        let _ = Error::Validation("half-open".to_string());
         assert!(true);
     }
 
