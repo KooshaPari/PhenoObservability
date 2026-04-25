@@ -4,18 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
-use thiserror::Error;
 use tokio::sync::RwLock;
+use phenotype_observably_macros::async_instrumented;
 
-#[derive(Error, Debug)]
-pub enum MCPServerError {
-    #[error("tool not found: {0}")]
-    ToolNotFound(String),
-    #[error("resource not found: {0}")]
-    ResourceNotFound(String),
-    #[error("handler failed: {0}")]
-    HandlerFailed(String),
-}
+pub use phenotype_errors::RepositoryError as MCPServerError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
@@ -85,15 +77,18 @@ impl MCPServer {
         self.tools.read().await.values().map(|h| h.tool.clone()).collect()
     }
 
+    #[async_instrumented]
     pub async fn call_tool(
         &self,
         name: &str,
         arguments: Value,
     ) -> Result<ToolResult, MCPServerError> {
         let tools = self.tools.read().await;
-        let handler = tools.get(name).ok_or(MCPServerError::ToolNotFound(name.to_string()))?;
-        let result = (handler.handler)(arguments)
-            .map_err(|e| MCPServerError::HandlerFailed(e.to_string()))?;
+        let handler = tools.get(name).ok_or(MCPServerError::NotFound {
+            entity: "tool".to_string(),
+            id: name.to_string(),
+        })?;
+        let result = (handler.handler)(arguments).map_err(|e| MCPServerError::Connection(e.to_string()))?;
         Ok(ToolResult {
             content: vec![ContentItem {
                 content_type: "text".to_string(),
@@ -111,10 +106,13 @@ impl MCPServer {
         self.resources.read().await.values().cloned().collect()
     }
 
+    #[async_instrumented]
     pub async fn read_resource(&self, uri: &str) -> Result<ResourceContent, MCPServerError> {
         let resources = self.resources.read().await;
-        let resource =
-            resources.get(uri).ok_or(MCPServerError::ResourceNotFound(uri.to_string()))?;
+        let resource = resources.get(uri).ok_or(MCPServerError::NotFound {
+            entity: "resource".to_string(),
+            id: uri.to_string(),
+        })?;
         Ok(ResourceContent {
             uri: uri.to_string(),
             text: Some(format!("Resource: {}", resource.name)),

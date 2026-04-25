@@ -1,6 +1,7 @@
 //! Span Exporters
 
 use async_trait::async_trait;
+use phenotype_observably_macros::async_instrumented;
 
 use crate::application::SpanExporter;
 use crate::domain::{Span, TraceResult};
@@ -22,6 +23,7 @@ impl Default for ConsoleExporter {
 
 #[async_trait]
 impl SpanExporter for ConsoleExporter {
+    #[async_instrumented]
     async fn export(&self, spans: Vec<Span>) -> TraceResult<()> {
         for span in spans {
             println!("Span: {} - {:?}", span.name, span.status);
@@ -29,6 +31,7 @@ impl SpanExporter for ConsoleExporter {
         Ok(())
     }
 
+    #[async_instrumented]
     async fn shutdown(&self) -> TraceResult<()> {
         Ok(())
     }
@@ -57,11 +60,13 @@ impl Default for MemoryExporter {
 
 #[async_trait]
 impl SpanExporter for MemoryExporter {
+    #[async_instrumented]
     async fn export(&self, spans: Vec<Span>) -> TraceResult<()> {
         self.spans.write().extend(spans);
         Ok(())
     }
 
+    #[async_instrumented]
     async fn shutdown(&self) -> TraceResult<()> {
         Ok(())
     }

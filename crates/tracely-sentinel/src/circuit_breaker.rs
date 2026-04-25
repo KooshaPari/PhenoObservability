@@ -3,16 +3,7 @@
 //! Circuit breaker implementation for fault tolerance.
 
 use std::time::{Duration, Instant};
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum CircuitBreakerError {
-    #[error("Circuit breaker is open")]
-    Open,
-
-    #[error("Circuit breaker is half-open, request not allowed")]
-    HalfOpen,
-}
+pub use phenotype_errors::DomainError as CircuitBreakerError;
 
 /// Circuit breaker state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -132,7 +123,9 @@ impl CircuitBreaker {
         F: FnOnce() -> Result<T, E>,
     {
         if !self.is_allowed() {
-            return Err(CircuitBreakerError::Open);
+            return Err(CircuitBreakerError::Validation(
+                "Circuit breaker is open".to_string(),
+            ));
         }
 
         match self.state {
@@ -143,7 +136,9 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
-                    Err(CircuitBreakerError::HalfOpen)
+                    Err(CircuitBreakerError::Validation(
+                        "Circuit breaker is half-open, request not allowed".to_string(),
+                    ))
                 }
             },
             _ => match f() {
@@ -153,7 +148,9 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
-                    Err(CircuitBreakerError::Open)
+                    Err(CircuitBreakerError::Validation(
+                        "Circuit breaker is open".to_string(),
+                    ))
                 }
             },
         }

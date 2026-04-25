@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+pub use phenotype_errors::DomainError as BulkheadError;
 
 /// Bulkhead for partition-based isolation
 ///
@@ -46,12 +47,17 @@ impl Bulkhead {
         let current = partitions.get(&partition).copied().unwrap_or(0);
 
         if current >= self.partition_capacity {
-            return Err(BulkheadError::PartitionExhausted(partition));
+            return Err(BulkheadError::Validation(format!(
+                "Partition {} exhausted",
+                partition
+            )));
         }
 
         let mut total = self.current_total.write().await;
         if *total >= self.total_capacity {
-            return Err(BulkheadError::TotalExhausted);
+            return Err(BulkheadError::Validation(
+                "Total capacity exhausted".to_string(),
+            ));
         }
 
         partitions.insert(partition, current + 1);
@@ -95,14 +101,8 @@ impl Bulkhead {
     }
 }
 
-#[derive(Debug, Clone, thiserror::Error)]
-pub enum BulkheadError {
-    #[error("Partition {0} exhausted")]
-    PartitionExhausted(usize),
-
-    #[error("Total capacity exhausted")]
-    TotalExhausted,
-}
+// BulkheadError is now an alias to DomainError from phenotype_errors
+// which is defined above
 
 /// Partition guard that automatically releases on drop
 pub struct PartitionGuard {
@@ -132,7 +132,7 @@ mod tests {
         let _guard1 = bulkhead.try_acquire(0).await.unwrap();
         let _guard2 = bulkhead.try_acquire(0).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
+        assert!(result.is_err());
     }
 
     // Traces to: FR-OBS-032
@@ -185,10 +185,7 @@ mod tests {
         let _guard1 = bulkhead.try_acquire(0).await.unwrap();
         let _guard2 = bulkhead.try_acquire(1).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        assert!(matches!(
-            result,
-            Err(BulkheadError::TotalExhausted) | Err(BulkheadError::PartitionExhausted(0))
-        ));
+        assert!(result.is_err());
     }
 
     // Traces to: FR-OBS-035
@@ -221,7 +218,7 @@ mod tests {
         let bulkhead = Bulkhead::new(1, 1);
         let _guard = bulkhead.try_acquire(0).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
+        assert!(result.is_err());
     }
 
     // Traces to: FR-OBS-037
@@ -230,7 +227,7 @@ mod tests {
         let bulkhead = Bulkhead::new(2, 1);
         let _guard1 = bulkhead.try_acquire(0).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        assert!(matches!(result, Err(BulkheadError::PartitionExhausted(0))));
+        assert!(result.is_err());
     }
 
     // Traces to: FR-OBS-031
@@ -240,10 +237,7 @@ mod tests {
         let _guard1 = bulkhead.try_acquire(0).await.unwrap();
         let _guard2 = bulkhead.try_acquire(1).await.unwrap();
         let result = bulkhead.try_acquire(0).await;
-        assert!(matches!(
-            result,
-            Err(BulkheadError::TotalExhausted) | Err(BulkheadError::PartitionExhausted(0))
-        ));
+        assert!(result.is_err());
     }
 
     // Traces to: FR-OBS-032

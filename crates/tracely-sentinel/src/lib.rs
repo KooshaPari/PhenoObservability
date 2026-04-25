@@ -27,24 +27,10 @@ pub mod rate_limiter;
 pub mod validation;
 
 pub use bulkhead::{Bulkhead, PartitionGuard};
-pub use circuit_breaker::{CircuitBreaker, CircuitBreakerError, CircuitState};
+pub use circuit_breaker::{CircuitBreaker, CircuitState};
 pub use config::{BulkheadConfig, CircuitBreakerConfig, RateLimiterConfig, SentinelConfig};
-pub use rate_limiter::{LeakyBucket, RateLimiter, RateLimiterError, TokenBucket};
-
-// Re-export errors
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Rate limiter error: {0}")]
-    RateLimiter(#[from] RateLimiterError),
-
-    #[error("Circuit breaker error: {0}")]
-    CircuitBreaker(#[from] CircuitBreakerError),
-
-    #[error("Bulkhead error: partition exhausted")]
-    BulkheadExhausted,
-}
+pub use rate_limiter::{LeakyBucket, RateLimiter, TokenBucket};
+pub use phenotype_errors::DomainError as Error;
 
 #[cfg(test)]
 mod tests {
