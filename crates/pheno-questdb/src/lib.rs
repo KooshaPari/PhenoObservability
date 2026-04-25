@@ -4,20 +4,13 @@
 //! Supports native SQL, Kafka ingest, and HTTP API.
 
 use chrono::{DateTime, Utc};
+use phenotype_errors::{ApiError, RepositoryError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use thiserror::Error;
 use tracing::debug;
 
-/// QuestDB client errors
-#[derive(Error, Debug)]
-pub enum QuestDBError {
-    #[error("HTTP error: {0}")]
-    Http(String),
-
-    #[error("parse error: {0}")]
-    Parse(String),
-}
+/// QuestDB client result type
+pub type Result<T> = std::result::Result<T, ApiError>;
 
 /// Metric point
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,7 +45,7 @@ impl QuestDBClient {
     }
 
     /// Insert metric using ILP (InfluxDB Line Protocol)
-    pub async fn insert_metric(&self, metric: &Metric) -> Result<(), QuestDBError> {
+    pub async fn insert_metric(&self, metric: &Metric) -> Result<()> {
         let line = format!(
             "metrics,{},name={} value={} {}",
             Self::format_labels(&metric.labels),
@@ -67,10 +60,10 @@ impl QuestDBClient {
             .body(line)
             .send()
             .await
-            .map_err(|e| QuestDBError::Http(e.to_string()))?;
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
 
         if !response.status().is_success() {
-            return Err(QuestDBError::Http(format!("HTTP {}", response.status())));
+            return Err(ApiError::Internal(format!("HTTP {}", response.status())));
         }
 
         debug!("Metric inserted: {}", metric.name);
@@ -78,7 +71,7 @@ impl QuestDBClient {
     }
 
     /// Insert log entry
-    pub async fn insert_log(&self, log: &LogEntry) -> Result<(), QuestDBError> {
+    pub async fn insert_log(&self, log: &LogEntry) -> Result<()> {
         let trace = log.trace_id.as_deref().unwrap_or("none");
         let line = format!(
             "logs,level={},source={},trace_id={} message='{}' {}",
@@ -95,10 +88,10 @@ impl QuestDBClient {
             .body(line)
             .send()
             .await
-            .map_err(|e| QuestDBError::Http(e.to_string()))?;
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
 
         if !response.status().is_success() {
-            return Err(QuestDBError::Http(format!("HTTP {}", response.status())));
+            return Err(ApiError::Internal(format!("HTTP {}", response.status())));
         }
 
         debug!("Log inserted: {}", log.message);
@@ -109,7 +102,7 @@ impl QuestDBClient {
     pub async fn query<T: for<'de> Deserialize<'de>>(
         &self,
         sql: &str,
-    ) -> Result<Vec<T>, QuestDBError> {
+    ) -> Result<Vec<T>> {
         let url = format!("{}/v1/query?q={}", self.url, urlencoding::encode(sql));
 
         let response = self
@@ -117,15 +110,15 @@ impl QuestDBClient {
             .get(&url)
             .send()
             .await
-            .map_err(|e| QuestDBError::Http(e.to_string()))?;
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
 
-        let body = response.text().await.map_err(|e| QuestDBError::Parse(e.to_string()))?;
+        let body = response.text().await.map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
 
         let result: QueryResult<T> =
-            serde_json::from_str(&body).map_err(|e| QuestDBError::Parse(e.to_string()))?;
+            serde_json::from_str(&body).map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
 
         if let Some(err) = result.error {
-            return Err(QuestDBError::Parse(err));
+            return Err(ApiError::Repository(RepositoryError::Serialization(err)));
         }
 
         Ok(result.data)
@@ -136,7 +129,7 @@ impl QuestDBClient {
         &self,
         name: &str,
         interval: &str,
-    ) -> Result<Vec<AggregatedMetric>, QuestDBError> {
+    ) -> Result<Vec<AggregatedMetric>> {
         let sql = format!(
             "SELECT timestamp, avg(value) as avg_value, min(value) as min_value, max(value) as max_value \
              FROM metrics WHERE name = '{}' SAMPLE BY {} ALIGN TO CALENDAR",
