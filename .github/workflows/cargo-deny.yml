@@ -10,6 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          path: PhenoObservability
+      - uses: actions/checkout@v5
+        with:
+          repository: KooshaPari/pheno
+          path: pheno
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
+          manifest-path: PhenoObservability/Cargo.toml
