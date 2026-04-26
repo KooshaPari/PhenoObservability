@@ -1,5 +1,7 @@
 # PhenoObservability
 
+**Status:** maintenance
+
 Comprehensive observability infrastructure for Phenotype — distributed tracing, metrics, structured logging, and alerting. Built as a Rust + Python monorepo providing pluggable observability backends for the entire Phenotype ecosystem.
 
 ## Overview
