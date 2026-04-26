@@ -163,4 +163,4 @@ Maintain **80%+ code coverage** on all crates. See `docs/FUNCTIONAL_REQUIREMENTS
 
 ## License
 
-MIT OR Apache-2.0
+MIT — see [LICENSE](./LICENSE).
