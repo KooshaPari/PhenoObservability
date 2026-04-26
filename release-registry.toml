@@ -48,14 +48,6 @@ publish_target = "internal"
 description = "Model Context Protocol server for observability"
 
 [[crate]]
-name = "phenotype-surrealdb"
-version = "0.1.0"
-status = "alpha"
-stability = "0.x"
-publish_target = "crates.io"
-description = "SurrealDB adapter for flexible telemetry storage"
-
-[[crate]]
 name = "tracely-core"
 version = "0.1.0"
 status = "alpha"

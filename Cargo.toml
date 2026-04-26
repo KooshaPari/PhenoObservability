@@ -5,7 +5,6 @@ members = [
     "crates/pheno-questdb",
     "crates/phenotype-llm",
     "crates/phenotype-mcp-server",
-    "crates/phenotype-surrealdb",
     "crates/tracely-core",
     "crates/tracely-sentinel",
     "crates/helix-logging",
