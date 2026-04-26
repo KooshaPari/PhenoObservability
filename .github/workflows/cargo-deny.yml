@@ -16,6 +16,10 @@ jobs:
         with:
           repository: KooshaPari/pheno
           path: pheno
+      - uses: actions/checkout@v5
+        with:
+          repository: KooshaPari/phenotype-bus
+          path: phenotype-bus
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
