@@ -2,6 +2,10 @@
 
 **Status:** maintenance
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/KooshaPari/PhenoObservability/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/PhenoObservability/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+
 Comprehensive observability infrastructure for Phenotype — distributed tracing, metrics, structured logging, and alerting. Built as a Rust + Python monorepo providing pluggable observability backends for the entire Phenotype ecosystem.
 
 ## Overview
