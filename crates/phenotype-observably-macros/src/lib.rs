@@ -6,7 +6,29 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, ItemFn};
+use syn::{parse_macro_input, spanned::Spanned, ItemFn, ReturnType, Type};
+
+/// Inspect a function's return type and confirm it terminates in a `Result`-shaped path.
+///
+/// Accepts the last path segment being literally `Result` — this covers `Result<T, E>`,
+/// `std::result::Result<T, E>`, `anyhow::Result<T>`, and any user type alias named `Result`.
+/// Returns `Err(rendered_type_string)` on mismatch so the caller can build a clear diagnostic.
+fn return_type_is_result(output: &ReturnType) -> Result<(), String> {
+    let ty = match output {
+        ReturnType::Default => {
+            return Err("()".to_string());
+        }
+        ReturnType::Type(_, ty) => ty.as_ref(),
+    };
+    if let Type::Path(type_path) = ty {
+        if let Some(last) = type_path.path.segments.last() {
+            if last.ident == "Result" {
+                return Ok(());
+            }
+        }
+    }
+    Err(quote!(#ty).to_string())
+}
 
 /// Instrument an async function with automatic result logging and error tracing.
 ///
@@ -47,6 +69,16 @@ pub fn async_instrumented(_attr: TokenStream, item: TokenStream) -> TokenStream 
     // Instrument async functions with Result-like returns.
     // Works with Result<T, E>, anyhow::Result<T>, or any type alias ending in Result.
     let expanded = if input.sig.asyncness.is_some() {
+        if let Err(rendered) = return_type_is_result(output) {
+            let msg = format!(
+                "async_instrumented can only be applied to async fn returning Result<T, E> or anyhow::Result<T>; got: {}",
+                rendered
+            );
+            let span = output.span();
+            return TokenStream::from(quote::quote_spanned! {span=>
+                compile_error!(#msg);
+            });
+        }
         quote! {
             #[tracing::instrument(skip_all)]
             pub async fn #name #generics(#inputs) #output {
@@ -128,5 +160,47 @@ mod tests {
     fn structured_field_pii_scrub() {
         // Verified via integration tests on migrated crates
         assert!(true);
+    }
+
+    /// Test: return_type_is_result accepts Result variants
+    /// Traces to: FR-OBS-010
+    #[test]
+    fn return_type_is_result_accepts_result_shapes() {
+        let cases = [
+            "-> Result<u32, Error>",
+            "-> std::result::Result<(), MyError>",
+            "-> anyhow::Result<Vec<u8>>",
+            "-> crate::error::Result<T>",
+        ];
+        for case in cases {
+            let src = format!("fn f() {} {{ unimplemented!() }}", case);
+            let item: syn::ItemFn = syn::parse_str(&src).expect("parse fn");
+            assert!(
+                return_type_is_result(&item.sig.output).is_ok(),
+                "should accept: {}",
+                case
+            );
+        }
+    }
+
+    /// Test: return_type_is_result rejects non-Result returns
+    /// Traces to: FR-OBS-010
+    #[test]
+    fn return_type_is_result_rejects_non_result() {
+        let cases = [
+            ("", "()"),
+            ("-> u32", "u32"),
+            ("-> bool", "bool"),
+            ("-> Vec<u8>", "Vec"),
+        ];
+        for (ret, _) in cases {
+            let src = format!("fn f() {} {{ unimplemented!() }}", ret);
+            let item: syn::ItemFn = syn::parse_str(&src).expect("parse fn");
+            assert!(
+                return_type_is_result(&item.sig.output).is_err(),
+                "should reject: {}",
+                ret
+            );
+        }
     }
 }

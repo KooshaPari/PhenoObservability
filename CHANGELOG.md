@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [phenotype-observably-macros 0.1.1] - 2026-04-26
+
+### Added
+- `async_instrumented` now emits a `compile_error!` at macro expansion when applied to an async fn whose return type is not `Result<T, E>` / `anyhow::Result<T>` (or any path ending in `Result`). Converts opaque consumer-side E0308 errors into a clear macro-time diagnostic naming the offending return type.
+
 ## 🐛 Bug Fixes
 - Fix(tracingkit): resolve 6 compile errors (phenoobs precursor) (#4)
 
