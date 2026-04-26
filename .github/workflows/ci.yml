@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [main, master]
 
+
+permissions:
+  contents: read
 jobs:
   ci:
     uses: KooshaPari/phenotype-infrakit/.github/workflows/ci.yaml@main
