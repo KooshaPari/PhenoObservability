@@ -15,6 +15,11 @@ use syn::{parse_macro_input, ItemFn};
 /// - Logs successful return at debug level
 /// - Logs errors at warn level with context
 ///
+/// Supports any Result-like return type, including:
+/// - `Result<T, E>`
+/// - `anyhow::Result<T>` (alias for `Result<T, Box<dyn std::error::Error>>`)
+/// - Custom `Result` type aliases in the crate
+///
 /// # Example
 ///
 /// ```rust,ignore
@@ -22,6 +27,11 @@ use syn::{parse_macro_input, ItemFn};
 /// async fn process_request(id: &str) -> Result<String, Error> {
 ///     // span automatically created; errors logged
 ///     Ok(format!("Processed {}", id))
+/// }
+///
+/// #[async_instrumented]
+/// async fn with_anyhow() -> anyhow::Result<()> {
+///     Ok(())
 /// }
 /// ```
 #[proc_macro_attribute]
@@ -34,13 +44,17 @@ pub fn async_instrumented(_attr: TokenStream, item: TokenStream) -> TokenStream 
     let generics = &input.sig.generics;
     let inputs = &input.sig.inputs;
 
-    // Only instrument async functions returning Result
+    // Instrument async functions with Result-like returns.
+    // Works with Result<T, E>, anyhow::Result<T>, or any type alias ending in Result.
     let expanded = if input.sig.asyncness.is_some() {
         quote! {
             #[tracing::instrument(skip_all)]
             pub async fn #name #generics(#inputs) #output {
-                let _guard = tracing::debug_span!(#name_str).entered();
-                let result = async move { #block }.await;
+                {
+                    let _guard = tracing::debug_span!(#name_str).entered();
+                    drop(_guard);
+                }
+                let result = async { #block }.await;
                 if let Err(ref e) = result {
                     tracing::warn!("error in {}: {}", #name_str, e);
                 } else {
