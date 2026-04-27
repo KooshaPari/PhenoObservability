@@ -12,6 +12,9 @@ allow = [
     "MPL-2.0",
     "0BSD",
     "CC0-1.0",
+    "MIT-0",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
 ]
 
 [bans]
