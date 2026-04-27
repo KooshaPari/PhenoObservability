@@ -10,8 +10,9 @@ use syn::{parse_macro_input, spanned::Spanned, ItemFn, ReturnType, Type};
 
 /// Inspect a function's return type and confirm it terminates in a `Result`-shaped path.
 ///
-/// Accepts the last path segment being literally `Result` — this covers `Result<T, E>`,
-/// `std::result::Result<T, E>`, `anyhow::Result<T>`, and any user type alias named `Result`.
+/// Accepts the last path segment being literally `Result`, or ending in `Result` for domain
+/// aliases such as `TraceResult<T>`. This covers `Result<T, E>`,
+/// `std::result::Result<T, E>`, `anyhow::Result<T>`, and domain-specific aliases.
 /// Returns `Err(rendered_type_string)` on mismatch so the caller can build a clear diagnostic.
 fn return_type_is_result(output: &ReturnType) -> Result<(), String> {
     let ty = match output {
@@ -22,7 +23,8 @@ fn return_type_is_result(output: &ReturnType) -> Result<(), String> {
     };
     if let Type::Path(type_path) = ty {
         if let Some(last) = type_path.path.segments.last() {
-            if last.ident == "Result" {
+            let ident = last.ident.to_string();
+            if ident == "Result" || ident.ends_with("Result") {
                 return Ok(());
             }
         }
@@ -63,8 +65,9 @@ pub fn async_instrumented(_attr: TokenStream, item: TokenStream) -> TokenStream 
     let name_str = name.to_string();
     let output = &input.sig.output;
     let block = &input.block;
-    let generics = &input.sig.generics;
-    let inputs = &input.sig.inputs;
+    let attrs = &input.attrs;
+    let vis = &input.vis;
+    let sig = &input.sig;
 
     // Instrument async functions with Result-like returns.
     // Works with Result<T, E>, anyhow::Result<T>, or any type alias ending in Result.
@@ -80,8 +83,9 @@ pub fn async_instrumented(_attr: TokenStream, item: TokenStream) -> TokenStream 
             });
         }
         quote! {
+            #(#attrs)*
             #[tracing::instrument(skip_all)]
-            pub async fn #name #generics(#inputs) #output {
+            #vis #sig {
                 {
                     let _guard = tracing::debug_span!(#name_str).entered();
                     drop(_guard);
@@ -171,6 +175,8 @@ mod tests {
             "-> std::result::Result<(), MyError>",
             "-> anyhow::Result<Vec<u8>>",
             "-> crate::error::Result<T>",
+            "-> TraceResult<()>",
+            "-> crate::domain::TraceResult<T>",
         ];
         for case in cases {
             let src = format!("fn f() {} {{ unimplemented!() }}", case);

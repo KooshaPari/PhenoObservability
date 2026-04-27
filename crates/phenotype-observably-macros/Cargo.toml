@@ -3,6 +3,7 @@ name = "phenotype-observably-macros"
 version = "0.1.1"
 edition = "2021"
 description = "Procedural macros for PhenoObservability instrumentation patterns"
+license = "MIT OR Apache-2.0"
 
 [lib]
 proc-macro = true
