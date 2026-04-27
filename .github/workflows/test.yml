@@ -29,6 +29,12 @@ jobs:
         with:
           path: PhenoObservability
           persist-credentials: false
+          sparse-checkout: |
+            Cargo.toml
+            Cargo.lock
+            deny.toml
+            crates
+          sparse-checkout-cone-mode: false
       - uses: actions/checkout@v4
         with:
           repository: KooshaPari/pheno
@@ -68,6 +74,12 @@ jobs:
         with:
           path: PhenoObservability
           persist-credentials: false
+          sparse-checkout: |
+            Cargo.toml
+            Cargo.lock
+            deny.toml
+            crates
+          sparse-checkout-cone-mode: false
       - uses: actions/checkout@v4
         with:
           repository: KooshaPari/pheno

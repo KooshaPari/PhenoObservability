@@ -28,6 +28,12 @@ jobs:
         with:
           path: PhenoObservability
           persist-credentials: false
+          sparse-checkout: |
+            Cargo.toml
+            Cargo.lock
+            deny.toml
+            crates
+          sparse-checkout-cone-mode: false
 
       - name: Checkout pheno shared errors
         uses: actions/checkout@v4
