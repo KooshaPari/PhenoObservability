@@ -1,6 +1,7 @@
 name: cargo-deny
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
