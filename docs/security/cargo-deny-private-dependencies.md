@@ -36,13 +36,15 @@ typed async pub/sub crate consumed by the observability crates.
 
 ## Validation
 
-After the secret is configured, the `cargo-deny` workflow checks out:
+After the secret is configured, CI jobs that need Cargo dependency resolution
+check out:
 
 - `PhenoObservability` at `./PhenoObservability`
 - `pheno` at `./pheno`
 - `phenotype-bus` at `./phenotype-bus`
 
-This layout matches the existing path dependencies and allows:
+This layout matches the existing path dependencies and allows cargo-deny and the
+Rust test jobs to resolve the same workspace graph:
 
 ```bash
 cargo deny check --manifest-path PhenoObservability/Cargo.toml

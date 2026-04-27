@@ -14,11 +14,38 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
+      - name: Check private dependency token
+        run: |
+          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
+            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::tests need read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
+            echo "Create repository secret PHENOTYPE_REPO_READ_TOKEN with read-only contents access to KooshaPari/phenotype-bus."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
+        with:
+          path: PhenoObservability
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: KooshaPari/pheno
+          path: pheno
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: KooshaPari/phenotype-bus
+          path: phenotype-bus
+          token: ${{ env.PHENOTYPE_REPO_READ_TOKEN }}
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: PhenoObservability -> target
       - run: cargo test --workspace --lib
+        working-directory: PhenoObservability
         env:
           RUST_BACKTRACE: 1
 
@@ -26,13 +53,38 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
+      - name: Check private dependency token
+        run: |
+          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
+            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::coverage needs read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
+            echo "Create repository secret PHENOTYPE_REPO_READ_TOKEN with read-only contents access to KooshaPari/phenotype-bus."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
+        with:
+          path: PhenoObservability
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: KooshaPari/pheno
+          path: pheno
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: KooshaPari/phenotype-bus
+          path: phenotype-bus
+          token: ${{ env.PHENOTYPE_REPO_READ_TOKEN }}
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install tarpaulin
+      - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
+        working-directory: PhenoObservability
       - uses: codecov/codecov-action@v4
         continue-on-error: true
         with:
-          files: ./cobertura.xml
+          files: PhenoObservability/cobertura.xml
           flags: unittests
