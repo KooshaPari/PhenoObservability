@@ -25,16 +25,17 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
-        with:
-          path: PhenoObservability
-          persist-credentials: false
-          sparse-checkout: |
-            Cargo.toml
-            Cargo.lock
-            deny.toml
-            crates
-          sparse-checkout-cone-mode: false
+      - name: Download PhenoObservability source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p PhenoObservability
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
+            -o pheno-observability.tgz
+          tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
       - uses: actions/checkout@v4
         with:
           repository: KooshaPari/pheno
@@ -70,16 +71,17 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
-        with:
-          path: PhenoObservability
-          persist-credentials: false
-          sparse-checkout: |
-            Cargo.toml
-            Cargo.lock
-            deny.toml
-            crates
-          sparse-checkout-cone-mode: false
+      - name: Download PhenoObservability source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p PhenoObservability
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
+            -o pheno-observability.tgz
+          tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
       - uses: actions/checkout@v4
         with:
           repository: KooshaPari/pheno
