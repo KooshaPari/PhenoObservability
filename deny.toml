@@ -28,3 +28,8 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 crate = "protobuf"
 advisory = "RUSTSEC-2024-0437"
 reason = "protobuf: LOW severity uncontrolled recursion crash. Awaiting upstream fix."
+
+[[advisories.ignore]]
+crate = "protobuf"
+advisory = "RUSTSEC-2026-0105"
+reason = "protobuf: LOW severity uncontrolled recursion (transitive via prometheus 0.14.0). Fix available in protobuf 4.35.0-rc.1 but prometheus does not yet support 4.x. Recursion only triggers on adversarial nested schemas, not typical observability flows. Re-evaluate when prometheus 0.15+ ships with protobuf 4.x support."
