@@ -1,5 +1,7 @@
 # ai-prompt-logger — Multi-Agent Prompt Logging & Observability
 
+[![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
+
 Unified logging and observability layer for AI agent prompts and interactions. Captures prompts, responses, latencies, and error traces from multiple AI agent platforms (Claude, Cursor, Forge, Codex, etc.) into a centralized queryable database.
 
 ## Overview
