@@ -36,12 +36,12 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
             -o pheno-observability.tgz
           tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/pheno
           path: pheno
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/phenotype-bus
           path: phenotype-bus
@@ -82,12 +82,12 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
             -o pheno-observability.tgz
           tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/pheno
           path: pheno
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/phenotype-bus
           path: phenotype-bus

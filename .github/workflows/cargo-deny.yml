@@ -36,14 +36,14 @@ jobs:
           tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
 
       - name: Checkout pheno shared errors
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/pheno
           path: pheno
           persist-credentials: false
 
       - name: Checkout private phenotype-bus dependency
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: KooshaPari/phenotype-bus
           path: phenotype-bus
