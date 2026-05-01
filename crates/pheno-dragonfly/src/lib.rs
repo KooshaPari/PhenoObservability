@@ -5,7 +5,6 @@ use phenotype_errors::RepositoryError;
 use redis::{AsyncCommands, Client, aio::ConnectionManager};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, info};
 
 /// Dragonfly client result type
 pub type Result<T> = std::result::Result<T, RepositoryError>;
@@ -39,12 +38,10 @@ pub struct DragonflyClient {
 impl DragonflyClient {
     /// Create new Dragonfly client
     pub async fn new(url: &str) -> Result<Self> {
-        info!("Connecting to Dragonfly: {}", url);
         let client = Client::open(url).map_err(|e| RepositoryError::Connection(e.to_string()))?;
         let conn = ConnectionManager::new(client)
             .await
             .map_err(|e| RepositoryError::Connection(e.to_string()))?;
-        info!("Dragonfly connection established");
         Ok(Self { conn })
     }
 
@@ -58,7 +55,6 @@ impl DragonflyClient {
             .set_ex(&key, &value, session.ttl_seconds)
             .await
             .map_err(|e| RepositoryError::Query(e.to_string()))?;
-        debug!("Session stored: {}", session.id);
         Ok(())
     }
 
