@@ -55,7 +55,7 @@ Verification (scoped):
 - `cargo test -p tracingkit --lib` — 2/2 passing.
 - `cargo clippy -p tracingkit --all-targets -- -D warnings` — clean.
 
-Co-authored-by: Forge <forge@phenotype.dev> (`789dd74`)
+Co-authored-by: Forge <forge@kooshapari.com> (`789dd74`)
 - Fix(tracely-sentinel): remove orphan empty [workspace] stanza (resolves nested-workspace-root error) (#3)
 
 The crate declared its own empty `[workspace]` block, making it a nested
@@ -68,7 +68,7 @@ as intended. Verified via `cargo check -p phenotype-sentinel` (passes).
 
 Precursor #1 to PhenoObs workspace dedupe (per audit ae0fe9a3).
 
-Co-authored-by: Forge <forge@phenotype.dev> (`05cf4f4`)
+Co-authored-by: Forge <forge@kooshapari.com> (`05cf4f4`)
 - Fix: add phenotype-surrealdb and fix workspace (`579669c`)
 - Fix: repair workspace configuration (`d8f30f9`)
 ## ✨ Features
@@ -118,7 +118,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com> (`2ea0cbc`)
 - Test(obs): 75+ unit tests + FR docs + CI workflow — address P1 coverage gap (`6e31e5f`)
 - Ci: add reusable phenotype workflows (#1)
 
-Co-authored-by: Forge <forge@phenotype.dev> (`ef1d88d`)
+Co-authored-by: Forge <forge@kooshapari.com> (`ef1d88d`)
 - Chore(tracely): annotate 5 dead_code suppressions with kept reasons (#2)
 
 All 5 suppressions in tracely-sentinel/src/validation.rs mark public
@@ -128,7 +128,7 @@ Added `// kept: ...` rationale above each.
 
 cargo build -p phenotype-sentinel: clean in 9s.
 
-Co-authored-by: Forge <forge@phenotype.dev>
+Co-authored-by: Forge <forge@kooshapari.com>
 Co-authored-by: Claude Opus 4.7 (1M context) <noreply@anthropic.com> (`a7667f5`)
 - Chore: aggressive adoption - edition 2024 and dependency updates (`c5d0336`)
 - Initial: PhenoObservability - health, logging, metrics, telemetry (`2539fa8`)

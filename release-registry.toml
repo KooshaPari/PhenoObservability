@@ -3,7 +3,7 @@ name = "PhenoObservability"
 version = "0.1.0"
 repo = "https://github.com/KooshaPari/PhenoObservability"
 description = "Observability infrastructure crates for Phenotype: tracing, logging, metrics, and resilience patterns"
-authors = ["Phenotype Team <team@phenotype.dev>"]
+authors = ["Phenotype Team <team@kooshapari.com>"]
 license = "MIT OR Apache-2.0"
 theme = "observability"
 
