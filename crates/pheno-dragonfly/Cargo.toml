@@ -2,7 +2,7 @@
 name = "pheno-dragonfly"
 version = "0.1.0"
 edition = "2024"
-authors = ["Koosha Pari <koosha@phenotype.dev>"]
+authors = ["Koosha Pari <koosha@kooshapari.com>"]
 description = "Dragonfly client for PhenoObservability - Redis-compatible multi-threaded cache"
 license = "MIT OR Apache-2.0"
 
