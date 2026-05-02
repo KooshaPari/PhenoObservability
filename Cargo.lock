@@ -1631,6 +1631,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-test",
+ "tracing",
  "uuid",
 ]
 
@@ -2867,12 +2868,14 @@ dependencies = [
 name = "tracingkit"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "parking_lot",
  "phenotype-errors",
  "phenotype-observably-macros",
  "serde",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
