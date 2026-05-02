@@ -10,6 +10,7 @@ pub struct LogContext {
 }
 
 pub struct StructuredLogger {
+    #[allow(dead_code)]
     context: LogContext,
 }
 

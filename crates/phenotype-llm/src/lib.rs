@@ -128,8 +128,9 @@ impl LlmRouter {
             return provider.complete(request).await;
         }
 
-        if let Some(fallback) = self.fallback.read().unwrap().as_ref() {
-            return fallback.complete(request).await;
+        let fallback = self.fallback.read().unwrap().clone();
+        if let Some(fb) = fallback {
+            return fb.complete(request).await;
         }
 
         Err(ApiError::BadRequest(request.model.clone()))

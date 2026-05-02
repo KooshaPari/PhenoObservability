@@ -9,6 +9,7 @@ pub struct RateLimitConfig {
 }
 
 pub struct Sentinel {
+    #[allow(dead_code)]
     config: RateLimitConfig,
 }
 

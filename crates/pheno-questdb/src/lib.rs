@@ -51,7 +51,7 @@ impl QuestDBClient {
             Self::format_labels(&metric.labels),
             metric.name,
             metric.value,
-            metric.timestamp.timestamp_nanos()
+            metric.timestamp.timestamp_nanos_opt().unwrap_or(0)
         );
 
         let response = self
@@ -79,7 +79,7 @@ impl QuestDBClient {
             log.source,
             trace,
             Self::escape_value(&log.message),
-            log.timestamp.timestamp_nanos()
+            log.timestamp.timestamp_nanos_opt().unwrap_or(0)
         );
 
         let response = self
