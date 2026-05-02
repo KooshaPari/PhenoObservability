@@ -17,9 +17,6 @@ allow = [
     "CDLA-Permissive-2.0",
 ]
 
-[rules]
-msrv = "1.85"
-
 [bans]
 multiple-versions = "warn"
 wildcards = "warn"
