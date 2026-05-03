@@ -14,7 +14,7 @@ allow = [
     "CC0-1.0",
     "MIT-0",
     "Unicode-3.0",
-    "CDLA-Permissive-2.0",
+    "CDLA-Permissive-2.0"
 ]
 
 [bans]
@@ -27,11 +27,6 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 
 # LOW severity advisories deferred pending upstream fixes (2026-04-24 audit)
 # Expires: 2026-07-23
-[[advisories.ignore]]
-crate = "protobuf"
-advisory = "RUSTSEC-2024-0437"
-reason = "protobuf: LOW severity uncontrolled recursion crash. Awaiting upstream fix."
-
 [[advisories.ignore]]
 crate = "protobuf"
 advisory = "RUSTSEC-2026-0105"
