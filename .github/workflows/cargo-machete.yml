@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@db5fb34fa772531a3ece57ca434f579eb334e0fb
         with:
           tool: cargo-machete
 

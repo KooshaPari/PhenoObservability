@@ -16,7 +16,7 @@ on:
 
 jobs:
   publish:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@main
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@c894caa3f54e88a83791a5a5aed9ceddec552387
     with:
       crate: ${{ github.event.inputs.crate }}
       dry-run: ${{ github.event.inputs.dry-run }}

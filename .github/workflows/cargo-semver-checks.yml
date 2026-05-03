@@ -13,6 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: obi1kenobi/cargo-semver-checks-action@v2
+      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239
         with:
           manifest-path: Cargo.toml
