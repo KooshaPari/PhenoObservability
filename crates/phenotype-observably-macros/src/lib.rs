@@ -139,32 +139,26 @@ mod tests {
     #[test]
     fn async_instrumented_recognizes_async() {
         // Macro test coverage via compile_tests
-        assert!(true);
+        assert!(true, "compile-time coverage for async_instrumented");
     }
 
     /// Test: span creation for error logging
     /// Traces to: FR-OBS-011
     #[test]
-    fn span_creation_on_error() {
-        // Verified via integration tests on migrated crates
-        assert!(true);
-    }
+    #[ignore = "verified via integration tests on migrated crates"]
+    fn span_creation_on_error() {}
 
     /// Test: debug exit logging on success
     /// Traces to: FR-OBS-012
     #[test]
-    fn debug_exit_on_success() {
-        // Verified via integration tests on migrated crates
-        assert!(true);
-    }
+    #[ignore = "verified via integration tests on migrated crates"]
+    fn debug_exit_on_success() {}
 
     /// Test: structured field scrubbing in spans
     /// Traces to: FR-OBS-013
     #[test]
-    fn structured_field_pii_scrub() {
-        // Verified via integration tests on migrated crates
-        assert!(true);
-    }
+    #[ignore = "verified via integration tests on migrated crates"]
+    fn structured_field_pii_scrub() {}
 
     /// Test: return_type_is_result accepts Result variants
     /// Traces to: FR-OBS-010
