@@ -16,7 +16,7 @@ on:
 
 jobs:
   publish:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@main
     with:
       crate: ${{ github.event.inputs.crate }}
       dry-run: ${{ github.event.inputs.dry-run }}

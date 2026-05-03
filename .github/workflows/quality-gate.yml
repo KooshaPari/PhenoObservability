@@ -8,5 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+      - uses: actions/checkout@v4@11bd71901bbe5b1630ceea73d27597364c9af683
       - run: echo "Quality gate check (phenotype-tooling integration)"

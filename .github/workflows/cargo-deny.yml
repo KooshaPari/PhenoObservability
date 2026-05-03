@@ -59,7 +59,7 @@ jobs:
           tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
 
       - name: Run cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/repos#get-a-repository","status":"404"}
+        uses: EmbarkStudios/cargo-deny-action@91bf2b620e09e18d6eb78b92e7861937469acedb # v6
         with:
           command: check
           manifest-path: PhenoObservability/Cargo.toml
