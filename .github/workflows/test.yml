@@ -56,8 +56,8 @@ jobs:
             "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
             -o phenotype-bus.tgz
           tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
-      - uses: dtolnay/rust-toolchain@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
-      - uses: Swatinem/rust-cache@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
         with:
           workspaces: PhenoObservability -> target
       - run: cargo test --workspace --lib
@@ -111,11 +111,11 @@ jobs:
             "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
             -o phenotype-bus.tgz
           tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
-      - uses: dtolnay/rust-toolchain@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+      - uses: dtolnay/rust-toolchain@stable
       - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
         working-directory: PhenoObservability
-      - uses: codecov/codecov-action@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+      - uses: codecov/codecov-action@v4
         continue-on-error: true
         with:
           files: PhenoObservability/cobertura.xml

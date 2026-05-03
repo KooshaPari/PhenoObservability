@@ -12,5 +12,5 @@ permissions:
   contents: read
 jobs:
   coverage:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/coverage.yml@{"message":"Not Found","documentation_url":"https://docs.github.com/rest/commits/commits#get-a-commit","status":"404"}
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/coverage.yml@main
     secrets: inherit
