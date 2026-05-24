@@ -41,7 +41,10 @@ pub struct QuestDBClient {
 impl QuestDBClient {
     /// Create new QuestDB client
     pub fn new(url: &str) -> Self {
-        Self { url: url.trim_end_matches('/').to_string(), http_client: reqwest::Client::new() }
+        Self {
+            url: url.trim_end_matches('/').to_string(),
+            http_client: reqwest::Client::new(),
+        }
     }
 
     /// Insert metric using ILP (InfluxDB Line Protocol)
@@ -99,10 +102,7 @@ impl QuestDBClient {
     }
 
     /// Execute SQL query
-    pub async fn query<T: for<'de> Deserialize<'de>>(
-        &self,
-        sql: &str,
-    ) -> Result<Vec<T>> {
+    pub async fn query<T: for<'de> Deserialize<'de>>(&self, sql: &str) -> Result<Vec<T>> {
         let url = format!("{}/v1/query?q={}", self.url, urlencoding::encode(sql));
 
         let response = self
@@ -112,10 +112,13 @@ impl QuestDBClient {
             .await
             .map_err(|e| ApiError::Internal(e.to_string()))?;
 
-        let body = response.text().await.map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
+        let body = response
+            .text()
+            .await
+            .map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
 
-        let result: QueryResult<T> =
-            serde_json::from_str(&body).map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
+        let result: QueryResult<T> = serde_json::from_str(&body)
+            .map_err(|e| ApiError::Repository(RepositoryError::Serialization(e.to_string())))?;
 
         if let Some(err) = result.error {
             return Err(ApiError::Repository(RepositoryError::Serialization(err)));
@@ -125,11 +128,7 @@ impl QuestDBClient {
     }
 
     /// Aggregate metrics
-    pub async fn aggregate(
-        &self,
-        name: &str,
-        interval: &str,
-    ) -> Result<Vec<AggregatedMetric>> {
+    pub async fn aggregate(&self, name: &str, interval: &str) -> Result<Vec<AggregatedMetric>> {
         let sql = format!(
             "SELECT timestamp, avg(value) as avg_value, min(value) as min_value, max(value) as max_value \
              FROM metrics WHERE name = '{}' SAMPLE BY {} ALIGN TO CALENDAR",

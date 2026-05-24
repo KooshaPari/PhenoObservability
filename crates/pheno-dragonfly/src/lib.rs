@@ -62,8 +62,10 @@ impl DragonflyClient {
     pub async fn get_session(&self, id: &str) -> Result<Option<Session>> {
         let key = format!("session:{}", id);
         let mut conn = self.conn.clone();
-        let value: Option<String> =
-            conn.get(&key).await.map_err(|e| RepositoryError::Query(e.to_string()))?;
+        let value: Option<String> = conn
+            .get(&key)
+            .await
+            .map_err(|e| RepositoryError::Query(e.to_string()))?;
         match value {
             Some(v) => {
                 let session: Session = serde_json::from_str(&v)
@@ -75,12 +77,7 @@ impl DragonflyClient {
     }
 
     /// Set with custom TTL
-    pub async fn set_with_ttl(
-        &self,
-        key: &str,
-        value: &[u8],
-        ttl_seconds: u64,
-    ) -> Result<()> {
+    pub async fn set_with_ttl(&self, key: &str, value: &[u8], ttl_seconds: u64) -> Result<()> {
         let mut conn = self.conn.clone();
         let _: () = conn
             .set_ex(key, value, ttl_seconds)
@@ -92,16 +89,20 @@ impl DragonflyClient {
     /// Get value
     pub async fn get(&self, key: &str) -> Result<Option<Vec<u8>>> {
         let mut conn = self.conn.clone();
-        let value: Option<String> =
-            conn.get(key).await.map_err(|e| RepositoryError::Query(e.to_string()))?;
+        let value: Option<String> = conn
+            .get(key)
+            .await
+            .map_err(|e| RepositoryError::Query(e.to_string()))?;
         Ok(value.map(|v| v.into_bytes()))
     }
 
     /// Increment counter (atomic)
     pub async fn incr(&self, key: &str, amount: i64) -> Result<i64> {
         let mut conn = self.conn.clone();
-        let result: i64 =
-            conn.incr(key, amount).await.map_err(|e| RepositoryError::Query(e.to_string()))?;
+        let result: i64 = conn
+            .incr(key, amount)
+            .await
+            .map_err(|e| RepositoryError::Query(e.to_string()))?;
         Ok(result)
     }
 

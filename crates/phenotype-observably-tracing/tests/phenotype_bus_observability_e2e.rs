@@ -113,7 +113,10 @@ async fn test_sidekick_cache_miss_to_observably_logging() {
     let _ = timeout(Duration::from_millis(300), handler).await;
 
     let result = captured.lock().await;
-    assert!(result.is_some(), "Observably did not receive cache-miss event");
+    assert!(
+        result.is_some(),
+        "Observably did not receive cache-miss event"
+    );
     assert_eq!(result.as_ref().unwrap().cache_key, "user-profile-001");
 }
 
@@ -227,7 +230,10 @@ async fn test_stashly_storage_to_observably_otel_span() {
     let _ = timeout(Duration::from_millis(300), handler).await;
 
     let result = captured.lock().await;
-    assert!(result.is_some(), "Observably did not emit span for storage event");
+    assert!(
+        result.is_some(),
+        "Observably did not emit span for storage event"
+    );
     assert_eq!(result.as_ref().unwrap().artifact_id, "artifact-abc-123");
 }
 

@@ -56,7 +56,10 @@ impl SpanPrivacyFilter {
         result = p.token.replace_all(&result, "[REDACTED_TOKEN]").to_string();
 
         // URLs with auth
-        result = p.url_with_auth.replace_all(&result, "https://[REDACTED_CREDS]@").to_string();
+        result = p
+            .url_with_auth
+            .replace_all(&result, "https://[REDACTED_CREDS]@")
+            .to_string();
 
         result
     }
@@ -145,9 +148,15 @@ mod tests {
 
         let output = filter.scrub_json(input);
 
-        assert_eq!(output.get("email").and_then(|v| v.as_str()), Some("[REDACTED_EMAIL]"));
         assert_eq!(
-            output.get("nested").and_then(|v| v.get("phone")).and_then(|v| v.as_str()),
+            output.get("email").and_then(|v| v.as_str()),
+            Some("[REDACTED_EMAIL]")
+        );
+        assert_eq!(
+            output
+                .get("nested")
+                .and_then(|v| v.get("phone"))
+                .and_then(|v| v.as_str()),
             Some("[REDACTED_PHONE]")
         );
         assert!(output

@@ -61,7 +61,10 @@ pub struct OpenAiProvider {
 
 impl OpenAiProvider {
     pub fn new(api_key: String) -> Self {
-        Self { api_key, client: reqwest::Client::new() }
+        Self {
+            api_key,
+            client: reqwest::Client::new(),
+        }
     }
 }
 
@@ -89,7 +92,11 @@ impl LlmProvider for OpenAiProvider {
             content: "response".to_string(),
             model: request.model.clone(),
             provider: self.provider_name().to_string(),
-            usage: TokenUsage { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+            usage: TokenUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
             latency_ms: start.elapsed().as_millis() as u64,
         })
     }
@@ -107,7 +114,10 @@ pub struct LlmRouter {
 
 impl LlmRouter {
     pub fn new() -> Self {
-        Self { providers: DashMap::new(), fallback: std::sync::RwLock::new(None) }
+        Self {
+            providers: DashMap::new(),
+            fallback: std::sync::RwLock::new(None),
+        }
     }
 
     pub fn register_provider(&self, prefix: &str, provider: Arc<dyn LlmProvider>) {
@@ -118,10 +128,7 @@ impl LlmRouter {
         *self.fallback.write().unwrap() = Some(provider);
     }
 
-    pub async fn complete(
-        &self,
-        request: &CompletionRequest,
-    ) -> Result<CompletionResponse> {
+    pub async fn complete(&self, request: &CompletionRequest) -> Result<CompletionResponse> {
         let prefix = request.model.split('/').next().unwrap_or(&request.model);
 
         if let Some(provider) = self.providers.get(prefix) {

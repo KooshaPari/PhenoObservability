@@ -1,11 +1,11 @@
 //! PhenotypeMCPServer - MCP Protocol Server inspired by fastmcp
 
+use phenotype_observably_macros::async_instrumented;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use phenotype_observably_macros::async_instrumented;
 
 pub use phenotype_errors::RepositoryError as MCPServerError;
 
@@ -69,12 +69,27 @@ impl MCPServer {
     ) where
         F: Fn(Value) -> Result<Value, MCPServerError> + Send + Sync + 'static,
     {
-        let tool = Tool { name: name.clone(), description, input_schema: schema };
-        self.tools.write().await.insert(name, ToolHandler { tool, handler: Arc::new(handler) });
+        let tool = Tool {
+            name: name.clone(),
+            description,
+            input_schema: schema,
+        };
+        self.tools.write().await.insert(
+            name,
+            ToolHandler {
+                tool,
+                handler: Arc::new(handler),
+            },
+        );
     }
 
     pub async fn list_tools(&self) -> Vec<Tool> {
-        self.tools.read().await.values().map(|h| h.tool.clone()).collect()
+        self.tools
+            .read()
+            .await
+            .values()
+            .map(|h| h.tool.clone())
+            .collect()
     }
 
     #[async_instrumented]
@@ -88,7 +103,8 @@ impl MCPServer {
             entity: "tool".to_string(),
             id: name.to_string(),
         })?;
-        let result = (handler.handler)(arguments).map_err(|e| MCPServerError::Connection(e.to_string()))?;
+        let result =
+            (handler.handler)(arguments).map_err(|e| MCPServerError::Connection(e.to_string()))?;
         Ok(ToolResult {
             content: vec![ContentItem {
                 content_type: "text".to_string(),
@@ -99,7 +115,10 @@ impl MCPServer {
     }
 
     pub async fn register_resource(&self, resource: Resource) {
-        self.resources.write().await.insert(resource.uri.clone(), resource);
+        self.resources
+            .write()
+            .await
+            .insert(resource.uri.clone(), resource);
     }
 
     pub async fn list_resources(&self) -> Vec<Resource> {
@@ -148,7 +167,10 @@ mod tests {
             )
             .await;
         assert_eq!(server.list_tools().await.len(), 1);
-        let result = server.call_tool("echo", serde_json::json!({"test": "value"})).await.unwrap();
+        let result = server
+            .call_tool("echo", serde_json::json!({"test": "value"}))
+            .await
+            .unwrap();
         assert!(!result.is_error);
     }
 }

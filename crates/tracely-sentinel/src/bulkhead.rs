@@ -2,10 +2,10 @@
 //!
 //! Bulkhead isolation pattern implementation.
 
+pub use phenotype_errors::DomainError as BulkheadError;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-pub use phenotype_errors::DomainError as BulkheadError;
 
 /// Bulkhead for partition-based isolation
 ///
@@ -47,17 +47,12 @@ impl Bulkhead {
         let current = partitions.get(&partition).copied().unwrap_or(0);
 
         if current >= self.partition_capacity {
-            return Err(BulkheadError::Validation(format!(
-                "Partition {} exhausted",
-                partition
-            )));
+            return Err(BulkheadError::Validation(format!("Partition {} exhausted", partition)));
         }
 
         let mut total = self.current_total.write().await;
         if *total >= self.total_capacity {
-            return Err(BulkheadError::Validation(
-                "Total capacity exhausted".to_string(),
-            ));
+            return Err(BulkheadError::Validation("Total capacity exhausted".to_string()));
         }
 
         partitions.insert(partition, current + 1);
