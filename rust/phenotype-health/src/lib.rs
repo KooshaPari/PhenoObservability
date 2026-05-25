@@ -74,7 +74,7 @@
 //! ```
 
 use async_trait::async_trait;
-use phenotype_error_core::{ErrorCode, GenericError};
+use phenotype_error_core::DomainError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -125,7 +125,7 @@ impl std::fmt::Display for HealthStatus {
 }
 
 /// Type alias for health check results using canonical error type
-pub type HealthCheckError = GenericError;
+pub type HealthCheckError = DomainError;
 
 /// Trait for implementing health checks
 #[async_trait]
