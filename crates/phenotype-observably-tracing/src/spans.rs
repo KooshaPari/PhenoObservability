@@ -45,7 +45,12 @@ pub struct ConnectorSpanAttrs {
 
 impl ConnectorSpanAttrs {
     pub fn new(connector_id: String) -> Self {
-        Self { connector_id, state: None, duration_ms: None, error: None }
+        Self {
+            connector_id,
+            state: None,
+            duration_ms: None,
+            error: None,
+        }
     }
 
     pub fn with_state(mut self, state: String) -> Self {
@@ -81,7 +86,13 @@ pub struct RuleSpanAttrs {
 
 impl RuleSpanAttrs {
     pub fn new(rule_id: String) -> Self {
-        Self { rule_id, rule_type: None, matched: None, duration_ms: None, error: None }
+        Self {
+            rule_id,
+            rule_type: None,
+            matched: None,
+            duration_ms: None,
+            error: None,
+        }
     }
 
     pub fn with_type(mut self, rule_type: String) -> Self {
@@ -120,7 +131,12 @@ pub struct AuditSpanAttrs {
 
 impl AuditSpanAttrs {
     pub fn new(audit_type: String) -> Self {
-        Self { audit_type, entry_count: None, duration_ms: None, error: None }
+        Self {
+            audit_type,
+            entry_count: None,
+            duration_ms: None,
+            error: None,
+        }
     }
 
     pub fn with_entry_count(mut self, count: usize) -> Self {
@@ -153,7 +169,12 @@ pub struct WalletSpanAttrs {
 
 impl WalletSpanAttrs {
     pub fn new(wallet_id: String, delta: i64) -> Self {
-        Self { wallet_id, delta, reason: None, error: None }
+        Self {
+            wallet_id,
+            delta,
+            reason: None,
+            error: None,
+        }
     }
 
     pub fn with_reason(mut self, reason: String) -> Self {
@@ -211,8 +232,9 @@ mod tests {
     // Traces to: FR-OBS-003
     #[test]
     fn test_audit_span_attrs_builder() {
-        let attrs =
-            AuditSpanAttrs::new("reward_grant".to_string()).with_entry_count(5).with_duration(890);
+        let attrs = AuditSpanAttrs::new("reward_grant".to_string())
+            .with_entry_count(5)
+            .with_duration(890);
 
         assert_eq!(attrs.audit_type, "reward_grant");
         assert_eq!(attrs.entry_count, Some(5));

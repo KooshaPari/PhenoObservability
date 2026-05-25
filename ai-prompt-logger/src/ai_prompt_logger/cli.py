@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -10,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from ai_prompt_logger import PromptLogger, PromptEntry, logger
+from ai_prompt_logger import logger
 
 app = typer.Typer(help="AI Prompt Logger CLI - Scrape and manage prompts from AI agents")
 console = Console()
@@ -33,7 +32,7 @@ def log(
         )
         
         if verbose:
-            console.print(f"[green]Logged prompt:[/green]")
+            console.print("[green]Logged prompt:[/green]")
             console.print(f"  Agent: {entry.agent}")
             console.print(f"  Model: {entry.model}")
             console.print(f"  ID: {entry.id}")

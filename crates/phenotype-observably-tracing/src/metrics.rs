@@ -101,27 +101,37 @@ impl MetricsRegistry {
 
     /// Increment connector sync counter.
     pub fn inc_connector_syncs(&self, connector_id: &str, amount: f64) {
-        self.connector_syncs.with_label_values(&[connector_id]).inc_by((amount as u64).max(1));
+        self.connector_syncs
+            .with_label_values(&[connector_id])
+            .inc_by((amount as u64).max(1));
     }
 
     /// Increment rule evaluation counter.
     pub fn inc_rule_evaluations(&self, rule_id: &str, amount: f64) {
-        self.rule_evaluations.with_label_values(&[rule_id]).inc_by((amount as u64).max(1));
+        self.rule_evaluations
+            .with_label_values(&[rule_id])
+            .inc_by((amount as u64).max(1));
     }
 
     /// Increment audit append counter.
     pub fn inc_audit_appends(&self, audit_type: &str, amount: f64) {
-        self.audit_appends.with_label_values(&[audit_type]).inc_by((amount as u64).max(1));
+        self.audit_appends
+            .with_label_values(&[audit_type])
+            .inc_by((amount as u64).max(1));
     }
 
     /// Record connector sync duration (in seconds).
     pub fn record_sync_duration(&self, connector_id: &str, duration_secs: f64) {
-        self.sync_duration.with_label_values(&[connector_id]).observe(duration_secs);
+        self.sync_duration
+            .with_label_values(&[connector_id])
+            .observe(duration_secs);
     }
 
     /// Record rule evaluation duration (in seconds).
     pub fn record_eval_duration(&self, rule_id: &str, duration_secs: f64) {
-        self.eval_duration.with_label_values(&[rule_id]).observe(duration_secs);
+        self.eval_duration
+            .with_label_values(&[rule_id])
+            .observe(duration_secs);
     }
 
     /// Export metrics in Prometheus text format.
@@ -152,9 +162,14 @@ mod tests {
         let registry = MetricsRegistry::new().expect("registry creation failed");
         // Increment a counter so we have data
         registry.inc_connector_syncs("test", 1.0);
-        let output = registry.gather_text_format().expect("should gather metrics");
+        let output = registry
+            .gather_text_format()
+            .expect("should gather metrics");
         // Verify metrics were gathered
-        assert!(output.len() > 0, "metrics output should contain data after increment");
+        assert!(
+            output.len() > 0,
+            "metrics output should contain data after increment"
+        );
     }
 
     // Traces to: FR-OBS-004

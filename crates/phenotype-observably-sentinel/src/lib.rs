@@ -25,7 +25,10 @@ mod tests {
 
     #[test]
     fn test_rate_limit_config() {
-        let cfg = RateLimitConfig { requests_per_second: 100, burst_size: 10 };
+        let cfg = RateLimitConfig {
+            requests_per_second: 100,
+            burst_size: 10,
+        };
         assert_eq!(cfg.requests_per_second, 100);
     }
 }

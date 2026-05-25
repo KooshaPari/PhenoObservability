@@ -180,16 +180,16 @@ class PromptLogger:
         filepath = self.onml_dir / filename
         
         with open(filepath, "w") as f:
-            f.write(f"# ONML - AI Prompt Log\n")
+            f.write("# ONML - AI Prompt Log\n")
             f.write(f"# Agent: {agent}\n")
             f.write(f"# Timestamp: {timestamp}\n")
             
             if metadata:
-                f.write(f"# Metadata:\n")
+                f.write("# Metadata:\n")
                 for key, value in metadata.items():
                     f.write(f"#   {key}: {value}\n")
             
-            f.write(f"---\n\n")
+            f.write("---\n\n")
             f.write(f"[PROMPT]\n{prompt}\n\n")
             
             if response:

@@ -29,8 +29,8 @@ pub mod validation;
 pub use bulkhead::{Bulkhead, PartitionGuard};
 pub use circuit_breaker::{CircuitBreaker, CircuitState};
 pub use config::{BulkheadConfig, CircuitBreakerConfig, RateLimiterConfig, SentinelConfig};
-pub use rate_limiter::{LeakyBucket, RateLimiter, TokenBucket};
 pub use phenotype_errors::DomainError as Error;
+pub use rate_limiter::{LeakyBucket, RateLimiter, TokenBucket};
 
 #[cfg(test)]
 mod tests {

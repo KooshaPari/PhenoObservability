@@ -2,8 +2,8 @@
 //!
 //! Rate limiting implementations: Token Bucket and Leaky Bucket algorithms.
 
-use std::time::Instant;
 pub use phenotype_errors::DomainError as RateLimiterError;
+use std::time::Instant;
 
 /// Trait for rate limiters
 pub trait RateLimiter {
