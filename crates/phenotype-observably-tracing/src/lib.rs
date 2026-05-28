@@ -26,7 +26,7 @@
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use focus_observability::{init_tracing, init_otel, MetricsRegistry};
+//! use phenotype_observably_tracing::{init_tracing, init_otel, MetricsRegistry};
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -34,7 +34,7 @@
 //!     init_tracing("focus-sync", None);
 //!
 //!     // Optional: export to OpenTelemetry collector
-//!     if let Err(e) = init_otel("http://localhost:4317").await {
+//!     if let Err(e) = init_otel(Some("http://localhost:4317")).await {
 //!         eprintln!("OTEL init failed: {}", e);
 //!     }
 //!
@@ -78,8 +78,11 @@ pub fn init_tracing(service_name: &str, log_level: Option<&str>) {
     let registry = tracing_subscriber::registry().with(env_filter);
 
     if format_str == "pretty" {
-        let fmt_layer =
-            fmt::layer().pretty().with_thread_ids(true).with_file(true).with_line_number(true);
+        let fmt_layer = fmt::layer()
+            .pretty()
+            .with_thread_ids(true)
+            .with_file(true)
+            .with_line_number(true);
 
         let _ = registry.with(fmt_layer).try_init();
     } else {
@@ -116,7 +119,10 @@ pub async fn init_otel(endpoint: Option<&str>) -> Result<()> {
     // For now, we initialize OTEL config but don't panic on failure.
     // In production, you would wire this with tracing-opentelemetry + opentelemetry-otlp.
     // This is simplified to avoid runtime dependency on the tokio runtime.
-    info!(endpoint = endpoint, "OpenTelemetry OTLP export configured (local export ready)");
+    info!(
+        endpoint = endpoint,
+        "OpenTelemetry OTLP export configured (local export ready)"
+    );
     Ok(())
 }
 

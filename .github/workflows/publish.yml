@@ -1,3 +1,6 @@
+permissions:
+  contents: read
+
 # Generated publish workflow - calls reusable phenotype workflow
 name: Publish Crate
 

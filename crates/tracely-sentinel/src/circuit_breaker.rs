@@ -2,8 +2,8 @@
 //!
 //! Circuit breaker implementation for fault tolerance.
 
-use std::time::{Duration, Instant};
 pub use phenotype_errors::DomainError as CircuitBreakerError;
+use std::time::{Duration, Instant};
 
 /// Circuit breaker state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -123,9 +123,7 @@ impl CircuitBreaker {
         F: FnOnce() -> Result<T, E>,
     {
         if !self.is_allowed() {
-            return Err(CircuitBreakerError::Validation(
-                "Circuit breaker is open".to_string(),
-            ));
+            return Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()));
         }
 
         match self.state {
@@ -148,9 +146,7 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
-                    Err(CircuitBreakerError::Validation(
-                        "Circuit breaker is open".to_string(),
-                    ))
+                    Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()))
                 }
             },
         }

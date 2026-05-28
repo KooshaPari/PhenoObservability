@@ -48,8 +48,9 @@ mod tests {
     // Traces to: FR-OBS-003
     #[test]
     fn test_audit_span_attrs_with_count() {
-        let attrs =
-            AuditSpanAttrs::new("reward_grant".to_string()).with_entry_count(42).with_duration(300);
+        let attrs = AuditSpanAttrs::new("reward_grant".to_string())
+            .with_entry_count(42)
+            .with_duration(300);
 
         assert_eq!(attrs.audit_type, "reward_grant");
         assert_eq!(attrs.entry_count, Some(42));
@@ -97,7 +98,6 @@ mod tests {
     // Traces to: FR-OBS-005 (PII Redaction)
     #[test]
     fn test_privacy_filter_redacts_email_in_connector_id() {
-        let filter = SpanPrivacyFilter::new();
         let attrs = ConnectorSpanAttrs::new("user@example.com".to_string());
         let serialized = serde_json::to_string(&attrs).expect("serialize");
 
@@ -129,9 +129,15 @@ mod tests {
         });
 
         let output = filter.scrub_json(input);
-        assert_eq!(output.get("connector_id").and_then(|v| v.as_str()), Some("github"));
         assert_eq!(
-            output.get("auth").and_then(|v| v.get("email")).and_then(|v| v.as_str()),
+            output.get("connector_id").and_then(|v| v.as_str()),
+            Some("github")
+        );
+        assert_eq!(
+            output
+                .get("auth")
+                .and_then(|v| v.get("email"))
+                .and_then(|v| v.as_str()),
             Some("[REDACTED_EMAIL]")
         );
     }
