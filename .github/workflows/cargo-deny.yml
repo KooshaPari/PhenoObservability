@@ -12,7 +12,7 @@ permissions:
 jobs:
   deny:
     name: Supply-chain policy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:

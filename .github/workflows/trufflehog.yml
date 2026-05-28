@@ -6,9 +6,9 @@ on:
 
 jobs:
   trufflehog:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
       - uses: trufflehog/actions/setup@8fe195c3c2d6f0e9a1f5c51e6d73b8a9f1b0d5e2
