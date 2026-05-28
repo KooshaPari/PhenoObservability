@@ -173,6 +173,123 @@ pub struct AggregatedMetric {
     pub max_value: f64,
 }
 
+/// Timestamp precision for ILP lines.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TimestampPrecision {
+    /// Nanoseconds (QuestDB default)
+    Nanoseconds,
+    /// Microseconds
+    Microseconds,
+    /// Milliseconds
+    Milliseconds,
+}
+
+impl TimestampPrecision {
+    /// Convert a [`DateTime<Utc>`] to the integer representation for this precision.
+    pub fn to_ilp_value(self, dt: &DateTime<Utc>) -> i64 {
+        match self {
+            TimestampPrecision::Nanoseconds => dt.timestamp_nanos_opt().unwrap_or(0),
+            TimestampPrecision::Microseconds => dt.timestamp_micros(),
+            TimestampPrecision::Milliseconds => dt.timestamp_millis(),
+        }
+    }
+}
+
+/// Buffered batch of ILP lines destined for QuestDB.
+#[derive(Debug)]
+pub struct BatchIngester {
+    /// Maximum number of rows before an automatic flush.
+    pub flush_size: usize,
+    /// Pending ILP lines not yet sent.
+    lines: Vec<String>,
+    /// Timestamp precision used when formatting new lines.
+    pub precision: TimestampPrecision,
+}
+
+impl BatchIngester {
+    /// Create a new `BatchIngester` with the given `flush_size` and `precision`.
+    pub fn new(flush_size: usize, precision: TimestampPrecision) -> Self {
+        Self {
+            flush_size,
+            lines: Vec::new(),
+            precision,
+        }
+    }
+
+    /// Buffer a [`Metric`] row.  Returns `true` when the batch has reached
+    /// `flush_size` and the caller should call [`flush`](Self::flush).
+    pub fn push_metric(&mut self, metric: &Metric) -> bool {
+        let ts = self.precision.to_ilp_value(&metric.timestamp);
+        let line = format!(
+            "metrics,{},name={} value={} {}",
+            QuestDBClient::format_labels(&metric.labels),
+            metric.name,
+            metric.value,
+            ts,
+        );
+        self.lines.push(line);
+        self.lines.len() >= self.flush_size
+    }
+
+    /// Buffer a [`LogEntry`] row.  Returns `true` when the batch should be
+    /// flushed.
+    pub fn push_log(&mut self, log: &LogEntry) -> bool {
+        let ts = self.precision.to_ilp_value(&log.timestamp);
+        let trace = log.trace_id.as_deref().unwrap_or("none");
+        let line = format!(
+            "logs,level={},source={},trace_id={} message='{}' {}",
+            log.level,
+            log.source,
+            trace,
+            QuestDBClient::escape_value(&log.message),
+            ts,
+        );
+        self.lines.push(line);
+        self.lines.len() >= self.flush_size
+    }
+
+    /// Return the number of buffered (un-flushed) rows.
+    pub fn pending(&self) -> usize {
+        self.lines.len()
+    }
+
+    /// Drain and return all buffered ILP lines, clearing the internal buffer.
+    ///
+    /// The caller is responsible for sending the returned lines to QuestDB.
+    pub fn drain(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.lines)
+    }
+
+    /// Send all buffered lines to QuestDB via the provided client, then clear
+    /// the buffer.  A no-op if the buffer is empty.
+    pub async fn flush(&mut self, client: &QuestDBClient) -> Result<usize> {
+        if self.lines.is_empty() {
+            return Ok(0);
+        }
+        let body = self.lines.join("\n");
+        let count = self.lines.len();
+        self.lines.clear();
+
+        let response = client
+            .http_client
+            .post(format!("{}/v1/imp", client.url))
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        if !response.status().is_success() {
+            return Err(ApiError::Internal(format!(
+                "flush HTTP {}",
+                response.status()
+            )));
+        }
+
+        debug!("Flushed {} rows to QuestDB", count);
+        Ok(count)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
