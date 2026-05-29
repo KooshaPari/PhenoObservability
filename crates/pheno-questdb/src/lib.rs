@@ -3,8 +3,10 @@
 //! QuestDB is a time-series database that's 100x faster than InfluxDB.
 //! Supports native SQL, Kafka ingest, and HTTP API.
 
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use phenotype_errors::{ApiError, RepositoryError};
+use phenotype_observably_ports::timeseries::{TimeSeriesPort, TsLogEntry, TsMetric, TsResult};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::debug;
@@ -287,6 +289,52 @@ impl BatchIngester {
 
         debug!("Flushed {} rows to QuestDB", count);
         Ok(count)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Hexagonal port implementation — BatchIngester ↔ TimeSeriesPort
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+impl TimeSeriesPort for BatchIngester {
+    async fn ingest_metric(&mut self, metric: TsMetric) -> TsResult<()> {
+        let m = Metric {
+            timestamp: metric.timestamp,
+            name: metric.name,
+            value: metric.value,
+            labels: metric.labels,
+        };
+        self.push_metric(&m);
+        Ok(())
+    }
+
+    async fn ingest_log(&mut self, log: TsLogEntry) -> TsResult<()> {
+        let l = LogEntry {
+            timestamp: log.timestamp,
+            level: log.level,
+            message: log.message,
+            source: log.source,
+            trace_id: log.trace_id,
+            labels: log.labels,
+        };
+        self.push_log(&l);
+        Ok(())
+    }
+
+    /// Drains buffered lines and returns the count.
+    ///
+    /// NOTE: `BatchIngester::flush` requires a `&QuestDBClient` reference,
+    /// which the port cannot carry.  The port implementation therefore drains
+    /// the buffer and returns the row count; callers that need real HTTP
+    /// delivery should use the inherent `flush(&client)` method directly.
+    async fn flush(&mut self) -> TsResult<usize> {
+        let lines = self.drain();
+        Ok(lines.len())
+    }
+
+    fn pending(&self) -> usize {
+        self.pending()
     }
 }
 

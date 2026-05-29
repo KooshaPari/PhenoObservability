@@ -1,7 +1,9 @@
 #![doc = "Dragonfly client for PhenoObservability - Redis-compatible, multi-threaded cache"]
 
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use phenotype_errors::RepositoryError;
+use phenotype_observably_ports::cache::{CachePort, CacheResult};
 use redis::{AsyncCommands, Client, aio::ConnectionManager};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -114,5 +116,48 @@ impl DragonflyClient {
             .await
             .map_err(|e| RepositoryError::Query(e.to_string()))?;
         Ok(result == "PONG")
+    }
+
+    /// Delete a key (raw, no prefix).
+    pub async fn delete(&self, key: &str) -> Result<()> {
+        let mut conn = self.conn.clone();
+        let _: () = conn
+            .del(key)
+            .await
+            .map_err(|e| RepositoryError::Query(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Set expiry on a key.  Returns `true` if the key existed.
+    pub async fn expire(&self, key: &str, ttl_seconds: u64) -> Result<bool> {
+        let mut conn = self.conn.clone();
+        let result: bool = conn
+            .expire(key, ttl_seconds as i64)
+            .await
+            .map_err(|e| RepositoryError::Query(e.to_string()))?;
+        Ok(result)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Hexagonal port implementation
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+impl CachePort for DragonflyClient {
+    async fn get(&self, key: &str) -> CacheResult<Option<Vec<u8>>> {
+        self.get(key).await
+    }
+
+    async fn set(&self, key: &str, value: &[u8], ttl_seconds: u64) -> CacheResult<()> {
+        self.set_with_ttl(key, value, ttl_seconds).await
+    }
+
+    async fn delete(&self, key: &str) -> CacheResult<()> {
+        self.delete(key).await
+    }
+
+    async fn expire(&self, key: &str, ttl_seconds: u64) -> CacheResult<bool> {
+        self.expire(key, ttl_seconds).await
     }
 }
