@@ -3,8 +3,9 @@ resolver = "2"
 members = [
     "crates/pheno-dragonfly",
     "crates/pheno-questdb",
-    "crates/phenotype-llm",
-    "crates/phenotype-mcp-server",
+    # phenotype-llm and phenotype-mcp-server removed per NFR-OBS-010
+    # (hexagonal architecture — no domain squatting); directories preserved,
+    # physical repo-move is a user decision. See refactor/remove-domain-squatters PR.
     "crates/tracely-core",
     "crates/tracely-sentinel",
     "crates/helix-logging",

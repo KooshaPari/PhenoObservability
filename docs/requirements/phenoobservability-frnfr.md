@@ -94,7 +94,7 @@
 | NFR-OBS-007 | Audit-clean dependencies | No active RUSTSEC advisories in dependency tree | `cargo deny check advisories` exits 0 | PRs #75, #76 |
 | NFR-OBS-008 | Rate limiter config serialisability | `RateLimitConfig` and `CircuitBreakerConfig` must round-trip through JSON | Serde round-trip test passes | PR #95 · `rate_limit_config_roundtrip_json` |
 | NFR-OBS-009 | SentinelError human-readable messages | All `SentinelError` variants must produce descriptive `Display` strings | Display strings match expected literals in test | PR #95 · `error_display_messages` |
-| NFR-OBS-010 | Hexagonal architecture — no domain squatting | Crates `phenotype-llm` and `phenotype-mcp-server` reside inside PhenoObservability but provide LLM/MCP domain logic unrelated to observability; they must be extracted to their own Phenotype-org repos | Each crate lives in its own repo with `phenotype-observably-*` as an optional dependency, not a sibling | PLANNED — no PR yet |
+| NFR-OBS-010 | Hexagonal architecture — no domain squatting | Crates `phenotype-llm` and `phenotype-mcp-server` reside inside PhenoObservability but provide LLM/MCP domain logic unrelated to observability; they must be extracted to their own Phenotype-org repos | Each crate lives in its own repo with `phenotype-observably-*` as an optional dependency, not a sibling | PARTIAL — PR refactor/remove-domain-squatters: both crates removed from workspace `members`; directories preserved with EXTRACT_NOTE.md; physical repo-move awaits user decision |
 | NFR-OBS-011 | Consolidated resilience crate | `phenotype-observably-sentinel` and `tracely-sentinel` implement overlapping resilience primitives; these must be consolidated onto a single shared `phenotype-resilience` crate consumed by all Phenotype repos | Single crate; duplicate implementations removed; consumer repos updated | PLANNED — no PR yet |
 | NFR-OBS-012 | Alerting depth | `tracely-sentinel` / `tracely-core` expose health-check and alerting stubs only; full alerting rule engine (threshold-based, anomaly, aggregation window) is absent | Alerting engine with rule CRUD, evaluation loop, and notification dispatch implemented and tested | SHIPPED — PR #feat/alerting-engine · `phenotype-observably-sentinel::alerting` · `AlertRule`, `AlertEvaluator`, `AlertSink` port (`InMemoryAlertSink`, `LogAlertSink`) · 16 alerting tests green |
 | NFR-OBS-013 | Metrics aggregation depth | `QuestDBClient::aggregate` covers a single `SAMPLE BY` pattern; percentile (p50/p95/p99), histogram, and counter aggregation surfaces are absent | Percentile and histogram query helpers present with integration-test coverage | PLANNED |
@@ -106,8 +106,8 @@
 
 | Gap | Blocking PR | Priority |
 |-----|-------------|----------|
-| Extract `phenotype-llm` to own Phenotype-org repo | None | High — hexagonal architecture violation |
-| Extract `phenotype-mcp-server` to own Phenotype-org repo | None | High — hexagonal architecture violation |
+| Physical move of `phenotype-llm` dir to own Phenotype-org repo | refactor/remove-domain-squatters (workspace member removed; code preserved) | High — user decision required |
+| Physical move of `phenotype-mcp-server` dir to own Phenotype-org repo | refactor/remove-domain-squatters (workspace member removed; code preserved) | High — user decision required |
 | Consolidate `phenotype-observably-sentinel` + `tracely-sentinel` → `phenotype-resilience` | None | High — code duplication |
 | Alerting rule engine (threshold/anomaly/window) | PR feat/alerting-engine | SHIPPED |
 | Metrics aggregation depth (percentile/histogram) | None | Medium |
