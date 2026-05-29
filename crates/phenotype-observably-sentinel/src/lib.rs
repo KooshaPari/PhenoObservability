@@ -1,4 +1,7 @@
-//! Sentinel patterns: token-bucket rate limiting, circuit breaker, bulkhead.
+//! Sentinel patterns: token-bucket rate limiting, circuit breaker, bulkhead,
+//! and threshold-based alerting rule engine.
+//!
+//! See [`alerting`] for the hexagonal alerting port and rule evaluator.
 //!
 //! # Rate Limiter
 //! Uses the [`governor`] crate (GCRA / token-bucket algorithm) for per-key,
@@ -11,6 +14,13 @@
 //!
 //! # Bulkhead
 //! Counting semaphore that caps concurrent in-flight calls.
+
+pub mod alerting;
+
+pub use alerting::{
+    Alert, AlertError, AlertEvaluator, AlertRule, AlertSink, InMemoryAlertSink, LogAlertSink,
+    MetricSample, Severity, ThresholdOp,
+};
 
 use governor::{
     clock::DefaultClock,
