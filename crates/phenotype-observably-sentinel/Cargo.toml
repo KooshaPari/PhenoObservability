@@ -9,7 +9,6 @@ description.workspace = true
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 parking_lot = { workspace = true }
 governor = { version = "0.6", features = ["std", "jitter"] }
@@ -18,4 +17,5 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
+serde_json = { workspace = true }
 tokio = { workspace = true }
