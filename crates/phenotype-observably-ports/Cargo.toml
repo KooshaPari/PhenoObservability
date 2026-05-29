@@ -1,0 +1,22 @@
+[package]
+name = "phenotype-observably-ports"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Hexagonal port traits for PhenoObservability adapters (cache + time-series)"
+
+[features]
+default = []
+# Enable in-memory test-double implementations
+test-util = []
+
+[dependencies]
+async-trait = { workspace = true }
+chrono = { workspace = true }
+phenotype-errors = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1.39", features = ["full"] }
