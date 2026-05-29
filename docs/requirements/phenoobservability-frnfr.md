@@ -97,7 +97,7 @@
 | NFR-OBS-010 | Hexagonal architecture — no domain squatting | Crates `phenotype-llm` and `phenotype-mcp-server` reside inside PhenoObservability but provide LLM/MCP domain logic unrelated to observability; they must be extracted to their own Phenotype-org repos | Each crate lives in its own repo with `phenotype-observably-*` as an optional dependency, not a sibling | PARTIAL — PR refactor/remove-domain-squatters: both crates removed from workspace `members`; directories preserved with EXTRACT_NOTE.md; physical repo-move awaits user decision |
 | NFR-OBS-011 | Consolidated resilience crate | `phenotype-observably-sentinel` and `tracely-sentinel` implement overlapping resilience primitives; these must be consolidated onto a single shared `phenotype-resilience` crate consumed by all Phenotype repos | Single crate; duplicate implementations removed; consumer repos updated | PLANNED — no PR yet |
 | NFR-OBS-012 | Alerting depth | `tracely-sentinel` / `tracely-core` expose health-check and alerting stubs only; full alerting rule engine (threshold-based, anomaly, aggregation window) is absent | Alerting engine with rule CRUD, evaluation loop, and notification dispatch implemented and tested | SHIPPED — PR #feat/alerting-engine · `phenotype-observably-sentinel::alerting` · `AlertRule`, `AlertEvaluator`, `AlertSink` port (`InMemoryAlertSink`, `LogAlertSink`) · 16 alerting tests green |
-| NFR-OBS-013 | Metrics aggregation depth | `QuestDBClient::aggregate` covers a single `SAMPLE BY` pattern; percentile (p50/p95/p99), histogram, and counter aggregation surfaces are absent | Percentile and histogram query helpers present with integration-test coverage | PLANNED |
+| NFR-OBS-013 | Metrics aggregation depth | `QuestDBClient::aggregate` covers a single `SAMPLE BY` pattern; percentile (p50/p95/p99), histogram, and counter aggregation surfaces are absent | `MetricsPort` hexagonal trait (counter/gauge/histogram) + `InMemoryMetrics` test double + `PrometheusMetrics` adapter implemented in `phenotype-observably-ports`; 12 metrics tests + 4 Prometheus adapter tests = 16 new tests green | SHIPPED — PR feat/metrics-port · `MetricsPort`, `InMemoryMetrics`, `PrometheusMetrics` · 16 new metrics tests green |
 | NFR-OBS-014 | Dragonfly TTL enforcement | `InMemoryCache` double does not enforce TTL expiry; real Dragonfly adapter TTL behaviour lacks integration tests | Integration tests (with real Dragonfly instance or testcontainer) verify TTL expiry and `expire` semantics | PLANNED |
 
 ---
@@ -110,5 +110,5 @@
 | Physical move of `phenotype-mcp-server` dir to own Phenotype-org repo | refactor/remove-domain-squatters (workspace member removed; code preserved) | High — user decision required |
 | Consolidate `phenotype-observably-sentinel` + `tracely-sentinel` → `phenotype-resilience` | None | High — code duplication |
 | Alerting rule engine (threshold/anomaly/window) | PR feat/alerting-engine | SHIPPED |
-| Metrics aggregation depth (percentile/histogram) | None | Medium |
+| Metrics aggregation depth (percentile/histogram) | PR feat/metrics-port | SHIPPED |
 | Dragonfly TTL integration tests | None | Low |

@@ -1,8 +1,9 @@
-//! In-memory test doubles for [`CachePort`] and [`TimeSeriesPort`].
+//! In-memory test doubles for [`CachePort`], [`TimeSeriesPort`], and [`MetricsPort`].
 //!
 //! Available only with the `test-util` Cargo feature.
 
 use crate::cache::{CachePort, CacheResult};
+use crate::metrics::{CounterEntry, GaugeEntry, HistogramEntry, Labels, MetricsPort};
 use crate::timeseries::{TimeSeriesPort, TsLogEntry, TsMetric, TsResult};
 use async_trait::async_trait;
 use std::collections::HashMap;
@@ -97,6 +98,100 @@ impl TimeSeriesPort for InMemoryTimeSeries {
 
     fn pending(&self) -> usize {
         self.pending_metrics.len() + self.pending_logs.len()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// InMemoryMetrics
+// ---------------------------------------------------------------------------
+
+/// Thread-safe in-memory implementation of [`MetricsPort`].
+///
+/// Records every call verbatim so tests can assert on both the values and the
+/// labels without needing a real Prometheus registry.
+#[derive(Clone, Default)]
+pub struct InMemoryMetrics {
+    counters: Arc<Mutex<Vec<CounterEntry>>>,
+    gauges: Arc<Mutex<Vec<GaugeEntry>>>,
+    histograms: Arc<Mutex<Vec<HistogramEntry>>>,
+}
+
+impl InMemoryMetrics {
+    /// All counter increments recorded so far (in insertion order).
+    pub fn counters(&self) -> Vec<CounterEntry> {
+        self.counters.lock().unwrap().clone()
+    }
+
+    /// All gauge sets recorded so far (in insertion order).
+    pub fn gauges(&self) -> Vec<GaugeEntry> {
+        self.gauges.lock().unwrap().clone()
+    }
+
+    /// All histogram observations recorded so far (in insertion order).
+    pub fn histograms(&self) -> Vec<HistogramEntry> {
+        self.histograms.lock().unwrap().clone()
+    }
+
+    /// Sum of all `delta` values for a counter with the given name.
+    pub fn counter_total(&self, name: &str) -> u64 {
+        self.counters
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|e| e.name == name)
+            .map(|e| e.delta)
+            .sum()
+    }
+
+    /// Most-recent gauge value for the given name, or `None` if never set.
+    pub fn last_gauge(&self, name: &str) -> Option<f64> {
+        self.gauges
+            .lock()
+            .unwrap()
+            .iter()
+            .rev()
+            .find(|e| e.name == name)
+            .map(|e| e.value)
+    }
+
+    /// All histogram values observed for the given name.
+    pub fn histogram_values(&self, name: &str) -> Vec<f64> {
+        self.histograms
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|e| e.name == name)
+            .map(|e| e.value)
+            .collect()
+    }
+}
+
+impl MetricsPort for InMemoryMetrics {
+    fn inc_counter(&self, name: &str, delta: u64, labels: Labels<'_>) {
+        let entry = CounterEntry {
+            name: name.to_owned(),
+            delta,
+            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+        };
+        self.counters.lock().unwrap().push(entry);
+    }
+
+    fn set_gauge(&self, name: &str, value: f64, labels: Labels<'_>) {
+        let entry = GaugeEntry {
+            name: name.to_owned(),
+            value,
+            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+        };
+        self.gauges.lock().unwrap().push(entry);
+    }
+
+    fn observe_histogram(&self, name: &str, value: f64, labels: Labels<'_>) {
+        let entry = HistogramEntry {
+            name: name.to_owned(),
+            value,
+            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+        };
+        self.histograms.lock().unwrap().push(entry);
     }
 }
 
@@ -202,5 +297,96 @@ mod tests {
         ts.ingest_metric(make_metric("m2", 2.0)).await.unwrap();
         ts.flush().await.unwrap();
         assert_eq!(ts.flushed_metrics.len(), 2);
+    }
+
+    // --- MetricsPort object-safety ---
+    #[test]
+    fn metrics_port_is_object_safe() {
+        let m: Box<dyn crate::metrics::MetricsPort> = Box::new(InMemoryMetrics::default());
+        drop(m);
+    }
+
+    // --- InMemoryMetrics: counter increments accumulate ---
+    #[test]
+    fn metrics_counter_increments_accumulate() {
+        let m = InMemoryMetrics::default();
+        m.inc_counter("http.requests", 3, &[("method", "GET")]);
+        m.inc_counter("http.requests", 7, &[("method", "GET")]);
+        assert_eq!(m.counter_total("http.requests"), 10);
+    }
+
+    // --- InMemoryMetrics: inc() shorthand increments by 1 ---
+    #[test]
+    fn metrics_inc_shorthand_adds_one() {
+        let m = InMemoryMetrics::default();
+        m.inc("errors", &[("svc", "auth")]);
+        m.inc("errors", &[("svc", "auth")]);
+        m.inc("errors", &[("svc", "auth")]);
+        assert_eq!(m.counter_total("errors"), 3);
+    }
+
+    // --- InMemoryMetrics: gauge set, last value wins ---
+    #[test]
+    fn metrics_gauge_last_value_wins() {
+        let m = InMemoryMetrics::default();
+        m.set_gauge("queue.depth", 10.0, &[]);
+        m.set_gauge("queue.depth", 5.0, &[]);
+        assert_eq!(m.last_gauge("queue.depth"), Some(5.0));
+    }
+
+    // --- InMemoryMetrics: gauge absent returns None ---
+    #[test]
+    fn metrics_gauge_absent_returns_none() {
+        let m = InMemoryMetrics::default();
+        assert_eq!(m.last_gauge("never.set"), None);
+    }
+
+    // --- InMemoryMetrics: histogram observations ---
+    #[test]
+    fn metrics_histogram_observations_recorded() {
+        let m = InMemoryMetrics::default();
+        m.observe_histogram("latency_ms", 10.0, &[("route", "/api")]);
+        m.observe_histogram("latency_ms", 20.0, &[("route", "/api")]);
+        m.observe_histogram("latency_ms", 30.0, &[("route", "/api")]);
+        let vals = m.histogram_values("latency_ms");
+        assert_eq!(vals, vec![10.0, 20.0, 30.0]);
+    }
+
+    // --- InMemoryMetrics: labels are carried through ---
+    #[test]
+    fn metrics_labels_carried() {
+        let m = InMemoryMetrics::default();
+        m.inc_counter("reqs", 1, &[("env", "prod"), ("region", "us-east-1")]);
+        let entries = m.counters();
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].labels.get("env").map(String::as_str), Some("prod"));
+        assert_eq!(
+            entries[0].labels.get("region").map(String::as_str),
+            Some("us-east-1")
+        );
+    }
+
+    // --- InMemoryMetrics: different metric names do not cross-contaminate ---
+    #[test]
+    fn metrics_names_are_independent() {
+        let m = InMemoryMetrics::default();
+        m.inc_counter("a", 5, &[]);
+        m.inc_counter("b", 2, &[]);
+        assert_eq!(m.counter_total("a"), 5);
+        assert_eq!(m.counter_total("b"), 2);
+    }
+
+    // --- InMemoryMetrics: round-trip via Box<dyn MetricsPort> ---
+    #[test]
+    fn metrics_double_round_trip_via_dyn() {
+        let m = InMemoryMetrics::default();
+        let port: Box<dyn crate::metrics::MetricsPort> = Box::new(m.clone());
+        port.inc("ticks", &[]);
+        port.set_gauge("temp", 98.6, &[("unit", "F")]);
+        port.observe_histogram("duration", 0.5, &[]);
+        // inspect via the original handle
+        assert_eq!(m.counter_total("ticks"), 1);
+        assert_eq!(m.last_gauge("temp"), Some(98.6));
+        assert_eq!(m.histogram_values("duration"), vec![0.5]);
     }
 }

@@ -1714,7 +1714,9 @@ dependencies = [
  "async-trait",
  "chrono",
  "phenotype-errors",
+ "prometheus",
  "serde",
+ "thiserror 2.0.18",
  "tokio",
 ]
 
