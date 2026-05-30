@@ -40,6 +40,7 @@ PhenoObservability provides production-grade observability tooling including Ope
 | **tracely-core** | Core tracing infrastructure |
 | **tracely-sentinel** | Sentinel-based tracing and monitoring |
 | **helix-logging** | Structured logging framework |
+| **logkit** (Logify subtree) | Hexagonal structured logging SDK (`crates/logkit/`) |
 | **tracingkit** | Comprehensive tracing toolkit |
 
 ## Features
@@ -94,6 +95,14 @@ cargo check --manifest-path ObservabilityKit/rust/Cargo.toml --workspace
 ```
 
 Root `cargo` workspace members under `crates/` remain canonical for PhenoObservability; ObservabilityKit crates are built from their nested workspace to avoid duplicate member names.
+
+## Logify / logkit (subtree)
+
+The [Logify](https://github.com/KooshaPari/Logify) structured-logging SDK is absorbed under `crates/logkit/` (squashed subtree). Build standalone:
+
+```bash
+cargo check --manifest-path crates/logkit/Cargo.toml
+```
 
 ## Architecture
 
