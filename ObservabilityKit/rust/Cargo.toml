@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = [
+    "phenotype-health-runtime",
+    "phenotype-logging",
+    "phenotype-metrics",
+    "phenotype-telemetry",
+]
+exclude = [
+    # Orphan: directory deleted but not yet pruned
+    "helix-logging",
+    "helix-tracing",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Phenotype Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/KooshaPari/ObservabilityKit"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+tracing = "0.1"
+axum = "0.7"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
