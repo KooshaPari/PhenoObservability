@@ -85,6 +85,16 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
+## ObservabilityKit (subtree)
+
+The [ObservabilityKit](https://github.com/KooshaPari/ObservabilityKit) SDK is absorbed under `ObservabilityKit/` (squashed subtree). It ships language-specific SDKs; the Rust nested workspace lives at `ObservabilityKit/rust/`:
+
+```bash
+cargo check --manifest-path ObservabilityKit/rust/Cargo.toml --workspace
+```
+
+Root `cargo` workspace members under `crates/` remain canonical for PhenoObservability; ObservabilityKit crates are built from their nested workspace to avoid duplicate member names.
+
 ## Architecture
 
 ```
