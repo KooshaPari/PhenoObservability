@@ -17,6 +17,8 @@ tracing = "0.1"
 urlencoding = "2.1"
 phenotype-observably-macros = { path = "../phenotype-observably-macros" }
 phenotype-errors = { workspace = true }
+async-trait = { workspace = true }
+phenotype-observably-ports = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1.44", features = ["full", "test-util"] }

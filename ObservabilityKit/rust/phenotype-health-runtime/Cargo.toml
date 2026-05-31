@@ -1,0 +1,44 @@
+[package]
+name = "phenotype-health-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Runtime health check framework with HTTP, metrics, history, and background polling. Superset of canonical phenotype-health traits."
+
+[features]
+default = ["http"]
+http = ["dep:axum", "dep:tower-http", "dep:tokio"]
+prometheus = ["dep:metrics", "dep:metrics-exporter-prometheus"]
+background = ["dep:tokio-cron-scheduler"]
+
+[dependencies]
+# Canonical phenotype-health traits (phenoShared) — runtime layers on top
+phenotype-health = { git = "https://github.com/KooshaPari/phenoShared.git", branch = "main" }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["time", "sync", "rt"], optional = true }
+thiserror = "2.0"
+tracing = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+futures-util = "0.3"
+
+# HTTP dependencies (optional)
+axum = { version = "0.7", optional = true }
+tower-http = { version = "0.5", features = ["trace", "cors"], optional = true }
+
+# Metrics dependencies (optional)
+metrics = { version = "0.23", optional = true }
+metrics-exporter-prometheus = { version = "0.15", optional = true }
+
+# Background scheduling (optional)
+tokio-cron-scheduler = { version = "0.10", optional = true }
+
+# History persistence
+dirs = "5.0"
+anyhow = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros", "test-util"] }
+reqwest = { version = "0.12", features = ["json"] }

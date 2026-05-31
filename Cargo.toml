@@ -3,8 +3,9 @@ resolver = "2"
 members = [
     "crates/pheno-dragonfly",
     "crates/pheno-questdb",
-    "crates/phenotype-llm",
-    "crates/phenotype-mcp-server",
+    # phenotype-llm and phenotype-mcp-server removed per NFR-OBS-010
+    # (hexagonal architecture — no domain squatting); directories preserved,
+    # physical repo-move is a user decision. See refactor/remove-domain-squatters PR.
     "crates/tracely-core",
     "crates/tracely-sentinel",
     "crates/helix-logging",
@@ -13,6 +14,7 @@ members = [
     "crates/phenotype-observably-logging",
     "crates/phenotype-observably-sentinel",
     "crates/phenotype-observably-macros",
+    "crates/phenotype-observably-ports",
 ]
 
 [workspace.package]
@@ -40,3 +42,4 @@ async-trait = "0.1"
 parking_lot = "0.12"
 phenotype-errors = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
 phenotype-bus = { path = "../phenotype-bus" }
+phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
