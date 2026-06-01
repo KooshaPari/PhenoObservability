@@ -41,5 +41,5 @@ uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
 parking_lot = "0.12"
 phenotype-errors = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
-phenotype-bus = { path = "../phenotype-bus" }
+phenotype-event-bus = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
 phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
