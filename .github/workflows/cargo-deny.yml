@@ -1,4 +1,4 @@
-﻿name: cargo-deny
+name: cargo-deny
 on:
   workflow_dispatch:
   pull_request:

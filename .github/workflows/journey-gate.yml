@@ -1,4 +1,4 @@
-﻿name: Journey Gate
+name: Journey Gate
 on:
   push:
     branches: [main]
