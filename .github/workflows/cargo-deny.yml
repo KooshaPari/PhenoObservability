@@ -1,65 +1,13 @@
 name: cargo-deny
-
 on:
   workflow_dispatch:
+  pull_request:
+    paths: ['Cargo.toml','Cargo.lock','deny.toml']
   push:
     branches: [main]
-  pull_request:
-
+    paths: ['Cargo.toml','Cargo.lock','deny.toml']
 permissions:
   contents: read
-
 jobs:
-  deny:
-    name: Supply-chain policy
-    runs-on: ubuntu-24.04
-    env:
-      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
-    steps:
-      - name: Check private dependency token
-        run: |
-          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
-            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::cargo-deny needs read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
-            echo "Create a fine-grained PAT or GitHub App token with read-only contents access to KooshaPari/phenotype-bus and save it as the repository secret PHENOTYPE_REPO_READ_TOKEN."
-            exit 1
-          fi
-
-      - name: Download PhenoObservability source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p PhenoObservability
-          curl -fsSL \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
-            -o pheno-observability.tgz
-          tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
-
-      - name: Download pheno shared errors
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p pheno
-          curl -fsSL \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
-            -o pheno.tgz
-          tar -xzf pheno.tgz --strip-components=1 -C pheno
-
-      - name: Download private phenotype-bus dependency
-        run: |
-          mkdir -p phenotype-bus
-          curl -fsSL \
-            -H "Authorization: Bearer ${PHENOTYPE_REPO_READ_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
-            -o phenotype-bus.tgz
-          tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
-
-      - name: Run cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@91bf2b620e09e18d6eb78b92e7861937469acedb # v6
-        with:
-          command: check
-          manifest-path: PhenoObservability/Cargo.toml
+  cargo-deny:
+    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/cargo-deny.yml@main
