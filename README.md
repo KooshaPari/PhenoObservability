@@ -1,3 +1,6 @@
+> **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
+> Rust observability stack (logging/metrics/tracing/health); multi-lang bindings; phantom HexaKit dep to fix · updated 2026-06-02
+
 > **Pinned references (Phenotype-org)**
 > - MSRV: see rust-toolchain.toml
 > - cargo-deny config: see deny.toml
