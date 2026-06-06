@@ -12,5 +12,5 @@ permissions:
   contents: read
 jobs:
   ci:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/ci.yaml@main
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/ci.yaml@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable
     secrets: inherit

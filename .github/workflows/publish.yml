@@ -16,7 +16,7 @@ on:
 
 jobs:
   publish:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@main
+    uses: KooshaPari/phenotype-infrakit/.github/workflows/publish-crate.yml@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable
     with:
       crate: ${{ github.event.inputs.crate }}
       dry-run: ${{ github.event.inputs.dry-run }}
