@@ -7,7 +7,7 @@ description = "Dragonfly client for PhenoObservability - Redis-compatible multi-
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+redis = { version = "1.2", features = ["tokio-comp", "connection-manager"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
