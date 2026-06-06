@@ -1759,7 +1759,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "opentelemetry 0.24.0",
+ "opentelemetry 0.27.1",
  "opentelemetry-otlp",
  "parking_lot",
  "phenotype-event-bus",
