@@ -3,6 +3,9 @@
 default:
     @just --list
 
+dev:
+    cargo watch -x check -x test
+
 build:
     cargo build --workspace
 
@@ -15,6 +18,9 @@ lint:
 
 fmt:
     cargo fmt
+
+clean:
+    cargo clean
 
 audit:
     cargo deny check
