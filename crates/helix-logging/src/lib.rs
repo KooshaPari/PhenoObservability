@@ -64,18 +64,11 @@ macro_rules! log_json {
     };
 }
 
-/// Context wrapper for correlation ID tracking
-pub struct LogContext {
-    pub correlation_id: String,
-}
-
-impl LogContext {
-    pub fn new(id: Option<String>) -> Self {
-        Self {
-            correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
-        }
-    }
-}
+/// Context wrapper for correlation ID tracking.
+///
+/// Re-exported from `tracely` (the canonical location since the
+/// 2026-03-26 absorption of `helix-logging`).
+pub use tracely::LogContext;
 
 #[cfg(test)]
 mod tests {

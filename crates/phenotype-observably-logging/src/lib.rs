@@ -1,13 +1,11 @@
 //! Structured logging with context propagation (helix-logging patterns).
+//!
+//! `LogContext` is re-exported from `tracely` — the canonical location
+//! for the type since the 2026-03-26 absorption of `helix-logging`.
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogContext {
-    pub trace_id: String,
-    pub span_id: String,
-    pub service: String,
-}
+/// Re-exported from `tracely` to keep a single source of truth for
+/// `LogContext` across the workspace.
+pub use tracely::LogContext;
 
 pub struct StructuredLogger {
     #[allow(dead_code)]
@@ -26,11 +24,8 @@ mod tests {
 
     #[test]
     fn test_log_context_creation() {
-        let ctx = LogContext {
-            trace_id: "trace-1".to_string(),
-            span_id: "span-1".to_string(),
-            service: "api".to_string(),
-        };
-        assert_eq!(ctx.service, "api");
+        // Exercise the canonical LogContext API from `tracely`.
+        let ctx = LogContext::new(Some("trace-1".to_string()));
+        assert_eq!(ctx.correlation_id, "trace-1");
     }
 }

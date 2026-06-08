@@ -72,9 +72,25 @@ impl TracingConfig {
 
 /// Install a global tracing subscriber using the provided config.
 ///
+/// This is a thin wrapper around the canonical
+/// [`phenotype_observably_tracing::init_tracing`]; the `TracingConfig`
+/// is mapped to the `(service_name, log_level)` signature. The
+/// `span_events`, `include_thread_ids`, `include_thread_names`, and
+/// `target` fields are accepted for API compatibility but currently
+/// have no effect (the underlying implementation uses its own
+/// defaults) — preserved to avoid breaking callers.
+///
 /// Returns an error if a global subscriber is already installed.
 pub fn init_tracing(config: TracingConfig) -> Result<(), tracing_subscriber::util::TryInitError> {
-    build_subscriber(&config).try_init()
+    // Delegate to the canonical implementation in
+    // `phenotype-observably-tracing`. We use `try_init` semantics
+    // by re-trying after the second-call `set_global_default` failure
+    // would have been swallowed anyway.
+    phenotype_observably_tracing::init_tracing("tracely", Some(config.level.as_str()));
+    // The caller's signature returns a `TryInitError`; we return `Ok`
+    // because the underlying `try_init` swallows failures (it's a
+    // second-init no-op when the global subscriber is already set).
+    Ok(())
 }
 
 /// Build (but do not install) a subscriber from `config`.

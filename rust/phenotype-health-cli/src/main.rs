@@ -86,17 +86,16 @@ enum OutputFormat {
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    // Initialize tracing
-    let filter = match cli.verbose {
+    // Initialize tracing via the canonical `phenotype_logging::init_tracing`
+    // (consolidated entry point for the `rust/` workspace).  Map
+    // `verbose` count to a level string and forward it explicitly.
+    let level = match cli.verbose {
         0 => "warn",
         1 => "info",
         2 => "debug",
         _ => "trace",
     };
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(false)
-        .init();
+    phenotype_logging::init_tracing_with(Some(level), None).ok();
 
     // Determine the path to scan
     let scan_path = cli.path.unwrap_or_else(|| std::env::current_dir().unwrap());

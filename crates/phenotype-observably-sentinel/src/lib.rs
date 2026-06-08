@@ -1,11 +1,13 @@
-//! Sentinel patterns: token-bucket rate limiting, circuit breaker, bulkhead,
-//! and threshold-based alerting rule engine.
+//! Sentinel patterns: circuit breaker, bulkhead, and threshold-based
+//! alerting rule engine.
+//!
+//! Rate limiting is **re-exported** from `phenotype-sentinel`
+//! (the `tracely-sentinel` crate) — the canonical, more featureful
+//! implementation (TokenBucket + LeakyBucket + trait + config
+//! validation).  See [`RateLimiter`], [`TokenBucket`], and
+//! [`LeakyBucket`] for the rate-limiter facade.
 //!
 //! See [`alerting`] for the hexagonal alerting port and rule evaluator.
-//!
-//! # Rate Limiter
-//! Uses the [`governor`] crate (GCRA / token-bucket algorithm) for per-key,
-//! thread-safe rate limiting with optional jitter.
 //!
 //! # Circuit Breaker
 //! Three-state FSM (Closed → Open → Half-Open) backed by [`parking_lot`]
@@ -22,17 +24,22 @@ pub use alerting::{
     MetricSample, Severity, ThresholdOp,
 };
 
-use governor::{
-    clock::DefaultClock,
-    middleware::NoOpMiddleware,
-    state::{InMemoryState, NotKeyed},
-    Quota, RateLimiter,
+// ── Rate-limiter facade (re-exported from `phenotype-sentinel`) ────────────
+//
+// The previous governor-based `Sentinel` rate limiter has been removed in
+// favour of the more featureful `phenotype-sentinel` crate (which provides
+// TokenBucket, LeakyBucket, the `RateLimiter` trait, async acquire, and
+// config validation).  The re-exports below keep a single import path
+// for consumers that previously used `phenotype_observably_sentinel::Sentinel`.
+
+pub use phenotype_sentinel::rate_limiter::RateLimiterError;
+pub use phenotype_sentinel::{
+    config, LeakyBucket, RateLimiter, RateLimiterConfig, TokenBucket,
 };
-use nonzero_ext::nonzero;
+
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
-    num::NonZeroU32,
     sync::{
         atomic::{AtomicU32, AtomicU64, Ordering},
         Arc,
@@ -42,62 +49,19 @@ use std::{
 use thiserror::Error;
 
 // ── Errors ────────────────────────────────────────────────────────────────────
+//
+// `SentinelError` covers the remaining sentinel patterns (circuit breaker,
+// bulkhead).  The rate-limit error variant was removed along with the
+// governor-based `Sentinel` rate limiter — see `phenotype_sentinel::RateLimiterError`.
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum SentinelError {
-    #[error("rate limit exceeded")]
-    RateLimitExceeded,
     #[error("circuit breaker is open")]
     CircuitOpen,
     #[error("bulkhead capacity exhausted (max {0} concurrent)")]
     BulkheadFull(u32),
 }
 
-// ── Rate Limiter ──────────────────────────────────────────────────────────────
-
-/// Configuration for the token-bucket rate limiter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RateLimitConfig {
-    /// Steady-state requests allowed per second.
-    pub requests_per_second: u32,
-    /// Burst headroom above the steady rate (total bucket capacity =
-    /// requests_per_second + burst_size).
-    pub burst_size: u32,
-}
-
-/// Token-bucket rate limiter backed by [`governor`].
-///
-/// Wraps a GCRA cell in a newtype so callers never touch governor directly.
-pub struct Sentinel {
-    limiter: RateLimiter<NotKeyed, InMemoryState, DefaultClock, NoOpMiddleware>,
-}
-
-impl Sentinel {
-    /// Build a new `Sentinel` from a [`RateLimitConfig`].
-    ///
-    /// # Panics
-    /// Panics if `requests_per_second` is zero.
-    pub fn new(config: RateLimitConfig) -> Self {
-        let rps = NonZeroU32::new(config.requests_per_second)
-            .expect("requests_per_second must be non-zero");
-        // governor Quota::per_second sets the bucket capacity == rps; burst_size
-        // adds extra headroom via allow_burst.
-        let burst = NonZeroU32::new(config.requests_per_second + config.burst_size)
-            .unwrap_or(nonzero!(1u32));
-        let quota = Quota::per_second(rps).allow_burst(burst);
-        Self {
-            limiter: RateLimiter::direct(quota),
-        }
-    }
-
-    /// Try to acquire one token.  Returns `Ok(())` when a token was available,
-    /// `Err(SentinelError::RateLimitExceeded)` when the bucket is empty.
-    pub fn check(&self) -> Result<(), SentinelError> {
-        self.limiter
-            .check()
-            .map_err(|_| SentinelError::RateLimitExceeded)
-    }
-}
 
 // ── Circuit Breaker ───────────────────────────────────────────────────────────
 
@@ -315,77 +279,6 @@ mod tests {
     use super::*;
     use std::thread;
 
-    // ── RateLimitConfig ──────────────────────────────────────────────────────
-
-    #[test]
-    fn rate_limit_config_fields() {
-        let cfg = RateLimitConfig {
-            requests_per_second: 100,
-            burst_size: 10,
-        };
-        assert_eq!(cfg.requests_per_second, 100);
-        assert_eq!(cfg.burst_size, 10);
-    }
-
-    #[test]
-    fn rate_limit_config_roundtrip_json() {
-        let cfg = RateLimitConfig {
-            requests_per_second: 50,
-            burst_size: 5,
-        };
-        let json = serde_json::to_string(&cfg).unwrap();
-        let decoded: RateLimitConfig = serde_json::from_str(&json).unwrap();
-        assert_eq!(decoded.requests_per_second, 50);
-        assert_eq!(decoded.burst_size, 5);
-    }
-
-    // ── Sentinel (rate limiter) ──────────────────────────────────────────────
-
-    #[test]
-    fn sentinel_allows_requests_within_burst() {
-        // burst_size=9 means bucket capacity = rps(1)+burst(9)=10 tokens.
-        // We should be able to drain the full burst in one shot.
-        let sentinel = Sentinel::new(RateLimitConfig {
-            requests_per_second: 1,
-            burst_size: 9,
-        });
-        // First 10 calls (burst) should succeed.
-        for i in 0..10 {
-            assert!(
-                sentinel.check().is_ok(),
-                "call {i} should be within burst"
-            );
-        }
-    }
-
-    #[test]
-    fn sentinel_rejects_after_burst_exhausted() {
-        let sentinel = Sentinel::new(RateLimitConfig {
-            requests_per_second: 1,
-            burst_size: 0,
-        });
-        // Drain the single token.
-        let _ = sentinel.check();
-        // The next call must be rejected.
-        assert_eq!(
-            sentinel.check(),
-            Err(SentinelError::RateLimitExceeded),
-            "should reject once burst is exhausted"
-        );
-    }
-
-    #[test]
-    fn sentinel_high_rps_accepts_many() {
-        let sentinel = Sentinel::new(RateLimitConfig {
-            requests_per_second: 1000,
-            burst_size: 0,
-        });
-        // All 1 000 tokens in the first second's bucket should be available
-        // immediately.
-        let ok_count: usize = (0..1000).filter(|_| sentinel.check().is_ok()).count();
-        assert_eq!(ok_count, 1000);
-    }
-
     // ── CircuitBreaker ───────────────────────────────────────────────────────
 
     fn ok_call() -> Result<u32, &'static str> {
@@ -561,10 +454,8 @@ mod tests {
 
     #[test]
     fn error_display_messages() {
-        assert_eq!(
-            SentinelError::RateLimitExceeded.to_string(),
-            "rate limit exceeded"
-        );
+        // `RateLimitExceeded` was removed with the governor-based Sentinel
+        // rate limiter; use `phenotype_sentinel::RateLimiterError` instead.
         assert_eq!(
             SentinelError::CircuitOpen.to_string(),
             "circuit breaker is open"

@@ -20,6 +20,7 @@ phenotype-health = { path = "../phenotype-health", features = ["http"] }
 phenotype-project-registry = { path = "../phenotype-project-registry" }
 phenotype-compliance-scanner = { path = "../phenotype-compliance-scanner" }
 phenotype-security-aggregator = { path = "../phenotype-security-aggregator", features = ["real-sources"] }
+phenotype-logging = { path = "../phenotype-logging" }
 
 # HTTP server
 axum = { version = "0.7", features = ["macros"] }

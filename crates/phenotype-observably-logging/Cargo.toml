@@ -9,3 +9,5 @@ description.workspace = true
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
+# Canonical LogContext lives in tracely. Re-exported here for compatibility.
+tracely = { path = "../tracely-core" }

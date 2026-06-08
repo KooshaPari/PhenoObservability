@@ -1,14 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-/// Severity level for security findings
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Severity {
-    Critical,
-    High,
-    Medium,
-    Low,
-    Info,
-}
+/// Severity level for security findings.
+///
+/// Re-exported from `phenotype-compliance-scanner` — the canonical
+/// location for the type. The two enums were byte-identical and have
+/// been merged.
+pub use phenotype_compliance_scanner::Severity;
 
 /// A single security finding
 #[derive(Debug, Clone, Serialize, Deserialize)]

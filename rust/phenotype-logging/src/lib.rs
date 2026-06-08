@@ -26,8 +26,62 @@
 use std::sync::OnceLock;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 
-/// Initialize the global logger
-/// Initialize the global logging system
+/// Canonical tracing-init for the `phenotype-logging` crate.
+///
+/// Reads configuration from environment variables:
+/// - `RUST_LOG` or `PHENOTYPE_LOG_LEVEL` (default: `info`)
+/// - `PHENOTYPE_LOG_FORMAT` (`"json"` or `"pretty"`, default: `json`)
+///
+/// Safe to call multiple times — subsequent calls are silently
+/// ignored (via `try_init`).
+///
+/// This is the single consolidated entry point; the older
+/// `init_logger`, `init_logger_with_format`, and `configure_logging`
+/// functions delegate to it.
+pub fn init_tracing() -> Result<(), Box<dyn std::error::Error>> {
+    init_tracing_with(None, None)
+}
+
+/// Init helper that allows overriding the level and format explicitly.
+/// When `level` is `Some`, it shadows the `RUST_LOG`/`PHENOTYPE_LOG_LEVEL`
+/// env var.  When `format` is `Some`, it shadows the
+/// `PHENOTYPE_LOG_FORMAT` env var.
+pub fn init_tracing_with(
+    level: Option<&str>,
+    format: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let level_str = level
+        .map(|s| s.to_string())
+        .or_else(|| std::env::var("RUST_LOG").ok())
+        .or_else(|| std::env::var("PHENOTYPE_LOG_LEVEL").ok())
+        .unwrap_or_else(|| "info".to_string());
+
+    let format_str = format
+        .map(|s| s.to_string())
+        .or_else(|| std::env::var("PHENOTYPE_LOG_FORMAT").ok())
+        .unwrap_or_else(|| "json".to_string());
+
+    let env_filter = EnvFilter::try_new(&level_str).unwrap_or_else(|_| EnvFilter::new("info"));
+
+    let stdout_layer = match format_str.as_str() {
+        "pretty" => tracing_subscriber::fmt::layer()
+            .pretty()
+            .with_filter(env_filter)
+            .boxed(),
+        _ => tracing_subscriber::fmt::layer()
+            .json()
+            .with_filter(env_filter)
+            .boxed(),
+    };
+
+    let subscriber = tracing_subscriber::registry().with(stdout_layer);
+    // try_init returns Err if a global subscriber is already set,
+    // which we treat as a soft no-op (the first call wins).
+    let _ = subscriber.try_init();
+    Ok(())
+}
+
+/// Initialize the global logger (no-op if already initialized).
 ///
 /// # Returns
 /// Ok(()) if initialization succeeds, or an error if logging was already initialized
@@ -41,27 +95,14 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 /// }
 /// ```
 pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt::init();
-    Ok(())
+    init_tracing()
 }
 
-/// Initialize logger with custom format
+/// Initialize logger with custom format.
+///
+/// `format` is `"pretty"` or `"json"`. Delegates to [`init_tracing_with`].
 pub fn init_logger_with_format(format: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let stdout_layer = match format {
-        "pretty" => tracing_subscriber::fmt::layer()
-            .pretty()
-            .with_filter(EnvFilter::from_default_env())
-            .boxed(),
-        _ => tracing_subscriber::fmt::layer()
-            .json()
-            .with_filter(EnvFilter::from_default_env())
-            .boxed(),
-    };
-
-    let subscriber = tracing_subscriber::registry().with(stdout_layer);
-    subscriber.init();
-    
-    Ok(())
+    init_tracing_with(None, Some(format))
 }
 
 /// Request context for structured logging
@@ -161,9 +202,12 @@ impl TimingSpan {
     }
 }
 
-/// Configure logging with custom filter
+/// Configure logging with custom filter.
+///
+/// `filter` is forwarded to [`init_tracing_with`] as the explicit
+/// level.  This is a thin wrapper preserved for API compatibility.
 pub fn configure_logging(filter: &str) {
-    let _ = tracing_subscriber::fmt().with_env_filter(filter).try_init();
+    let _ = init_tracing_with(Some(filter), None);
 }
 
 /// Log at info level with context

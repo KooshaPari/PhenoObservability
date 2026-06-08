@@ -17,6 +17,9 @@ serde_json = "1.0"
 tracing.workspace = true
 async-trait.workspace = true
 anyhow = "1.0"
+# Canonical Severity enum — shared with phenotype-compliance-scanner
+# (the two enums were byte-identical and have been merged).
+phenotype-compliance-scanner = { path = "../phenotype-compliance-scanner" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
