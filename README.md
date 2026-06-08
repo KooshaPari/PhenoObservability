@@ -1,3 +1,14 @@
+## Work State
+
+| Field | Value |
+|---|---|
+| Last commit | 2026-06-08 |
+| Open issues | 6 |
+| Open PRs | 0 |
+| Focus | consolidate LogContext, Severity, RateLimiter, tracing init |
+
+Progress: ██████░░░░ 60%
+
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
 > Rust observability stack (logging/metrics/tracing/health); multi-lang bindings; phantom HexaKit dep to fix · updated 2026-06-02
 
