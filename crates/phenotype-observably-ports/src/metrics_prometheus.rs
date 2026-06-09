@@ -5,9 +5,7 @@
 //! histograms using the standard Prometheus data model.
 
 use crate::metrics::{Labels, MetricsPort};
-use prometheus::{
-    CounterVec, GaugeVec, HistogramOpts, HistogramVec, Opts, Registry,
-};
+use prometheus::{CounterVec, GaugeVec, HistogramOpts, HistogramVec, Opts, Registry};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -215,9 +213,18 @@ mod tests {
         let adapter = PrometheusMetrics::default();
         adapter.observe_histogram("prom_latency_ms", 42.0, &[("route", "/health")]);
         let text = gather_text(&adapter);
-        assert!(text.contains("prom_latency_ms_bucket"), "histogram bucket missing");
-        assert!(text.contains("prom_latency_ms_sum"), "histogram sum missing");
-        assert!(text.contains("prom_latency_ms_count"), "histogram count missing");
+        assert!(
+            text.contains("prom_latency_ms_bucket"),
+            "histogram bucket missing"
+        );
+        assert!(
+            text.contains("prom_latency_ms_sum"),
+            "histogram sum missing"
+        );
+        assert!(
+            text.contains("prom_latency_ms_count"),
+            "histogram count missing"
+        );
     }
 
     #[test]

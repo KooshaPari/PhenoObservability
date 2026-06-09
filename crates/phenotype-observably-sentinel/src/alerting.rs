@@ -170,12 +170,22 @@ impl InMemoryAlertSink {
 
     /// Return only firing alerts.
     pub fn firing(&self) -> Vec<Alert> {
-        self.alerts.lock().iter().filter(|a| a.firing).cloned().collect()
+        self.alerts
+            .lock()
+            .iter()
+            .filter(|a| a.firing)
+            .cloned()
+            .collect()
     }
 
     /// Return only resolved alerts.
     pub fn resolved(&self) -> Vec<Alert> {
-        self.alerts.lock().iter().filter(|a| !a.firing).cloned().collect()
+        self.alerts
+            .lock()
+            .iter()
+            .filter(|a| !a.firing)
+            .cloned()
+            .collect()
     }
 }
 
@@ -272,9 +282,7 @@ impl AlertEvaluator {
                 continue;
             }
 
-            let state = states
-                .entry(rule.id.clone())
-                .or_insert_with(RuleState::new);
+            let state = states.entry(rule.id.clone()).or_insert_with(RuleState::new);
 
             let breaching = rule.op.evaluate(sample.value, rule.threshold);
 
@@ -525,10 +533,7 @@ mod tests {
         ))
         .unwrap();
 
-        assert!(
-            sink.firing().is_empty(),
-            "timer reset; should not fire yet"
-        );
+        assert!(sink.firing().is_empty(), "timer reset; should not fire yet");
     }
 
     // ── FR-OBS-012: severity is carried on the alert ─────────────────────────
@@ -567,7 +572,7 @@ mod tests {
         eval.push(&sample("cpu_usage", 95.0)).unwrap(); // cpu fires
         eval.push(&sample("mem_usage", 95.0)).unwrap(); // mem fires
         eval.push(&sample("cpu_usage", 60.0)).unwrap(); // cpu resolves
-        // mem is still firing
+                                                        // mem is still firing
 
         let firing_ids = eval.firing_rule_ids();
         assert!(firing_ids.contains(&"mem-high".to_string()));

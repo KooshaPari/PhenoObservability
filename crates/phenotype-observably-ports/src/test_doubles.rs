@@ -171,7 +171,10 @@ impl MetricsPort for InMemoryMetrics {
         let entry = CounterEntry {
             name: name.to_owned(),
             delta,
-            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            labels: labels
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
         };
         self.counters.lock().unwrap().push(entry);
     }
@@ -180,7 +183,10 @@ impl MetricsPort for InMemoryMetrics {
         let entry = GaugeEntry {
             name: name.to_owned(),
             value,
-            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            labels: labels
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
         };
         self.gauges.lock().unwrap().push(entry);
     }
@@ -189,7 +195,10 @@ impl MetricsPort for InMemoryMetrics {
         let entry = HistogramEntry {
             name: name.to_owned(),
             value,
-            labels: labels.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            labels: labels
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
         };
         self.histograms.lock().unwrap().push(entry);
     }
@@ -359,7 +368,10 @@ mod tests {
         m.inc_counter("reqs", 1, &[("env", "prod"), ("region", "us-east-1")]);
         let entries = m.counters();
         assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0].labels.get("env").map(String::as_str), Some("prod"));
+        assert_eq!(
+            entries[0].labels.get("env").map(String::as_str),
+            Some("prod")
+        );
         assert_eq!(
             entries[0].labels.get("region").map(String::as_str),
             Some("us-east-1")
