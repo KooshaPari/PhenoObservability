@@ -189,8 +189,7 @@ impl CircuitBreaker {
             let g = self.inner.read();
             if g.state == CircuitState::Open {
                 if let Some(opened_at) = g.opened_at {
-                    opened_at.elapsed()
-                        >= Duration::from_millis(self.config.open_duration_ms)
+                    opened_at.elapsed() >= Duration::from_millis(self.config.open_duration_ms)
                 } else {
                     false
                 }
@@ -204,9 +203,7 @@ impl CircuitBreaker {
             // Double-check under write lock.
             if g.state == CircuitState::Open {
                 if let Some(opened_at) = g.opened_at {
-                    if opened_at.elapsed()
-                        >= Duration::from_millis(self.config.open_duration_ms)
-                    {
+                    if opened_at.elapsed() >= Duration::from_millis(self.config.open_duration_ms) {
                         g.state = CircuitState::HalfOpen;
                     }
                 }
@@ -224,9 +221,7 @@ impl CircuitBreaker {
     fn on_failure(&self) {
         let mut g = self.inner.write();
         g.failure_count += 1;
-        if g.state == CircuitState::HalfOpen
-            || g.failure_count >= self.config.failure_threshold
-        {
+        if g.state == CircuitState::HalfOpen || g.failure_count >= self.config.failure_threshold {
             g.state = CircuitState::Open;
             g.opened_at = Some(Instant::now());
         }
@@ -351,10 +346,7 @@ mod tests {
         });
         // First 10 calls (burst) should succeed.
         for i in 0..10 {
-            assert!(
-                sentinel.check().is_ok(),
-                "call {i} should be within burst"
-            );
+            assert!(sentinel.check().is_ok(), "call {i} should be within burst");
         }
     }
 
@@ -433,7 +425,7 @@ mod tests {
             open_duration_ms: 5000,
         });
         let _ = cb.call(err_call); // trips breaker
-        // Next call must be rejected without invoking the closure.
+                                   // Next call must be rejected without invoking the closure.
         assert_eq!(
             cb.call(ok_call),
             Err(SentinelError::CircuitOpen),
@@ -448,7 +440,7 @@ mod tests {
             open_duration_ms: 1, // 1 ms → transitions to HalfOpen almost immediately
         });
         let _ = cb.call(err_call); // open
-        // Wait for open_duration.
+                                   // Wait for open_duration.
         thread::sleep(Duration::from_millis(5));
         // Should now be HalfOpen; a success resets to Closed.
         assert!(cb.call(ok_call).is_ok());
@@ -481,7 +473,11 @@ mod tests {
         // Need 3 more failures now (counter was reset).
         let _ = cb.call(err_call);
         let _ = cb.call(err_call);
-        assert_eq!(cb.state(), CircuitState::Closed, "counter should have reset");
+        assert_eq!(
+            cb.state(),
+            CircuitState::Closed,
+            "counter should have reset"
+        );
         let _ = cb.call(err_call);
         assert_eq!(cb.state(), CircuitState::Open);
     }
@@ -502,10 +498,7 @@ mod tests {
         let bh = Bulkhead::new(2);
         let _g1 = bh.acquire().unwrap();
         let _g2 = bh.acquire().unwrap();
-        assert_eq!(
-            bh.acquire().unwrap_err(),
-            SentinelError::BulkheadFull(2)
-        );
+        assert_eq!(bh.acquire().unwrap_err(), SentinelError::BulkheadFull(2));
     }
 
     #[test]

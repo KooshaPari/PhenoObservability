@@ -230,7 +230,10 @@ fn log_message_single_quotes_are_escaped() {
     let ts = Utc::now();
     batch.push_log(&make_log("it's a problem", ts));
     let lines = batch.drain();
-    assert!(lines[0].contains("it''s a problem"), "single quotes must be escaped");
+    assert!(
+        lines[0].contains("it''s a problem"),
+        "single quotes must be escaped"
+    );
 }
 
 /// `TimestampPrecision::to_ilp_value` round-trips through all three variants.
@@ -356,7 +359,11 @@ async fn integration_shutdown_drain_flushes_remaining_rows() {
     for i in 0..7 {
         let _ = batch.push_metric(&make_metric("shutdown", i as f64, now));
     }
-    assert_eq!(batch.pending(), 7, "rows should be buffered before shutdown");
+    assert_eq!(
+        batch.pending(),
+        7,
+        "rows should be buffered before shutdown"
+    );
 
     // Shutdown: explicit flush drains the remainder
     let flushed = batch.flush(&client).await.unwrap();
