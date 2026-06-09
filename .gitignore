@@ -30,3 +30,5 @@ coverage/
 .mypy_cache/
 .ruff_cache/
 # ===== End standard hygiene ignores =====
+/worktrees/
+/*-wtrees/
