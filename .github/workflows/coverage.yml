@@ -8,7 +8,7 @@ on:
     branches: [main, master]
 jobs:
   coverage:
-    uses: KooshaPari/phenotype-infrakit/.github/workflows/coverage.yml@c894caa3f54e88a83791a5a5aed9ceddec552387
+    uses: KooshaPari/phenoShared/.github/workflows/reusable/coverage.yml@c3aee3361ff4888a8ced71c8861a8d54ae65fca0
     secrets: inherit
 permissions:
   contents: read
@@ -16,4 +16,3 @@ permissions:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
