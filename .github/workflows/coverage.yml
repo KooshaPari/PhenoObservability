@@ -54,6 +54,8 @@ jobs:
             -o phenotype-bus.tgz
           tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: stable
       - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
         working-directory: PhenoObservability
