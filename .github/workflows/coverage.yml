@@ -1,4 +1,4 @@
-# Generated coverage workflow - calls reusable phenotype workflow
+# Coverage workflow for PhenoObservability.
 name: Coverage
 
 on:
@@ -8,8 +8,60 @@ on:
     branches: [main, master]
 jobs:
   coverage:
-    uses: KooshaPari/phenoShared/.github/workflows/reusable/coverage.yml@c3aee3361ff4888a8ced71c8861a8d54ae65fca0
-    secrets: inherit
+    name: Coverage Report
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    env:
+      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
+    steps:
+      - name: Check private dependency token
+        run: |
+          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
+            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::coverage needs read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
+            echo "Create repository secret PHENOTYPE_REPO_READ_TOKEN with read-only contents access to KooshaPari/phenotype-bus."
+            exit 1
+          fi
+
+      - name: Download PhenoObservability source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p PhenoObservability
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
+            -o pheno-observability.tgz
+          tar -xzf pheno-observability.tgz --strip-components=1 -C PhenoObservability
+      - name: Download pheno shared errors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p pheno
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
+            -o pheno.tgz
+          tar -xzf pheno.tgz --strip-components=1 -C pheno
+      - name: Download private phenotype-bus dependency
+        run: |
+          mkdir -p phenotype-bus
+          curl -fsSL \
+            -H "Authorization: Bearer ${PHENOTYPE_REPO_READ_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
+            -o phenotype-bus.tgz
+          tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+      - run: cargo install cargo-tarpaulin
+      - run: cargo tarpaulin --workspace --lib --out=Xml
+        working-directory: PhenoObservability
+      - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
+        continue-on-error: true
+        with:
+          files: PhenoObservability/cobertura.xml
+          flags: unittests
 permissions:
   contents: read
 
