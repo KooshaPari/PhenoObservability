@@ -1,0 +1,17 @@
+[package]
+name = "phenotype-observably-macros"
+version = "0.1.0"
+edition = "2021"
+description = "STUB: no-op async_instrumented macro that preserves the original function. Created 2026-06-11 to unblock the monorepo after PhenoObservability/ was lost. Real impl (wrapping `tracing::instrument` for async) is V4 §6 SOTA work (Side S)."
+license = "MIT OR Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
