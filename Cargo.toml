@@ -7,7 +7,6 @@ members = [
     # (hexagonal architecture — no domain squatting); directories preserved,
     # physical repo-move is a user decision. See refactor/remove-domain-squatters PR.
     "crates/tracely-core",
-    "crates/tracely-sentinel",
     "crates/helix-logging",
     "crates/tracingkit",
     "crates/phenotype-observably-tracing",
@@ -43,3 +42,4 @@ parking_lot = "0.12"
 phenotype-errors = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
 phenotype-event-bus = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
 phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
+phenotype-resilience = { path = "../ResilienceKit/rust/phenotype-resilience" }
