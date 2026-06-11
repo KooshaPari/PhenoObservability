@@ -9,6 +9,7 @@ on:
 jobs:
   ci:
     uses: KooshaPari/phenotype-infrakit/.github/workflows/ci.yaml@c894caa3f54e88a83791a5a5aed9ceddec552387
+    timeout-minutes: 30
     secrets: inherit
 permissions:
   contents: read
