@@ -4,6 +4,24 @@
 **Traceability baseline:** PRs #94 (QuestDB integration tests), #95 (observably-sentinel resilience), #96 (CachePort/TimeSeriesPort hexagonal ports + in-memory doubles)
 **Crate inventory (13):** helix-logging · pheno-dragonfly · pheno-questdb · phenotype-llm · phenotype-mcp-server · phenotype-observably-logging · phenotype-observably-macros · phenotype-observably-ports · phenotype-observably-sentinel · phenotype-observably-tracing · tracely-core · tracely-sentinel · tracingkit
 
+## Subsystem specification index
+
+This catalog is the normalized spec landing page for subsystem-level requirements. Legacy spec IDs remain in [`docs/FUNCTIONAL_REQUIREMENTS.md`](../FUNCTIONAL_REQUIREMENTS.md), and this file provides traceability + status for implementation and remaining gaps.
+
+### Canonical subsystem references
+
+- [SOTA Observability](../research/SOTA-OBSERVABILITY.md)
+- [SOTA Log Analytics](../research/SOTA-LOG-ANALYTICS.md)
+
+| Subsystem | Requirement scope | Traceability | SOTA reference |
+|---|---|---|---|
+| Tracing | [Tracing Subsystem](#tracing-subsystem) | `phenotype-observably-tracing` | [SOTA-OBSERVABILITY](../research/SOTA-OBSERVABILITY.md) |
+| Logging | [Logging Subsystem](#logging-subsystem) | `helix-logging`, `phenotype-observably-logging` | [SOTA-LOG-ANALYTICS](../research/SOTA-LOG-ANALYTICS.md) |
+| Time-Series Ingest | [Time-Series Ingest (QuestDB / BatchIngester)](#time-series-ingest-questdb--batchingester) | `pheno-questdb` | [SOTA-OBSERVABILITY](../research/SOTA-OBSERVABILITY.md) |
+| Cache Port | [Cache Port (Dragonfly Adapter)](#cache-port-dragonfly-adapter) | `phenotype-observably-ports`, `pheno-dragonfly` | [SOTA-LOG-ANALYTICS](../research/SOTA-LOG-ANALYTICS.md) |
+| Time-Series Port | [Time-Series Port (Hexagonal)](#time-series-port-hexagonal) | `phenotype-observably-ports` | [SOTA-OBSERVABILITY](../research/SOTA-OBSERVABILITY.md) |
+| Resilience | [Resilience Primitives (observably-sentinel / tracely-sentinel)](#resilience-primitives-observably-sentinel--tracely-sentinel) | `phenotype-observably-sentinel`, `tracely-sentinel` | [SOTA-OBSERVABILITY](../research/SOTA-OBSERVABILITY.md) |
+
 ---
 
 ## Functional Requirements
@@ -95,10 +113,10 @@
 | NFR-OBS-008 | Rate limiter config serialisability | `RateLimitConfig` and `CircuitBreakerConfig` must round-trip through JSON | Serde round-trip test passes | PR #95 · `rate_limit_config_roundtrip_json` |
 | NFR-OBS-009 | SentinelError human-readable messages | All `SentinelError` variants must produce descriptive `Display` strings | Display strings match expected literals in test | PR #95 · `error_display_messages` |
 | NFR-OBS-010 | Hexagonal architecture — no domain squatting | Crates `phenotype-llm` and `phenotype-mcp-server` reside inside PhenoObservability but provide LLM/MCP domain logic unrelated to observability; they must be extracted to their own Phenotype-org repos | Each crate lives in its own repo with `phenotype-observably-*` as an optional dependency, not a sibling | PARTIAL — PR refactor/remove-domain-squatters: both crates removed from workspace `members`; directories preserved with EXTRACT_NOTE.md; physical repo-move awaits user decision |
-| NFR-OBS-011 | Consolidated resilience crate | `phenotype-observably-sentinel` and `tracely-sentinel` implement overlapping resilience primitives; these must be consolidated onto a single shared `phenotype-resilience` crate consumed by all Phenotype repos | Single crate; duplicate implementations removed; consumer repos updated | PLANNED — no PR yet |
+| NFR-OBS-011 | Consolidated resilience crate | `phenotype-observably-sentinel` and `tracely-sentinel` implement overlapping resilience primitives; these must be consolidated onto a single shared `phenotype-resilience` crate consumed by all Phenotype repos | PLANNED — Single crate; duplicate implementations removed; consumer repos updated | PLANNED |
 | NFR-OBS-012 | Alerting depth | `tracely-sentinel` / `tracely-core` expose health-check and alerting stubs only; full alerting rule engine (threshold-based, anomaly, aggregation window) is absent | Alerting engine with rule CRUD, evaluation loop, and notification dispatch implemented and tested | SHIPPED — PR #feat/alerting-engine · `phenotype-observably-sentinel::alerting` · `AlertRule`, `AlertEvaluator`, `AlertSink` port (`InMemoryAlertSink`, `LogAlertSink`) · 16 alerting tests green |
 | NFR-OBS-013 | Metrics aggregation depth | `QuestDBClient::aggregate` covers a single `SAMPLE BY` pattern; percentile (p50/p95/p99), histogram, and counter aggregation surfaces are absent | `MetricsPort` hexagonal trait (counter/gauge/histogram) + `InMemoryMetrics` test double + `PrometheusMetrics` adapter implemented in `phenotype-observably-ports`; 12 metrics tests + 4 Prometheus adapter tests = 16 new tests green | SHIPPED — PR feat/metrics-port · `MetricsPort`, `InMemoryMetrics`, `PrometheusMetrics` · 16 new metrics tests green |
-| NFR-OBS-014 | Dragonfly TTL enforcement | `InMemoryCache` double does not enforce TTL expiry; real Dragonfly adapter TTL behaviour lacks integration tests | Integration tests (with real Dragonfly instance or testcontainer) verify TTL expiry and `expire` semantics | PLANNED |
+| NFR-OBS-014 | Dragonfly TTL enforcement | `InMemoryCache` double does not enforce TTL expiry; real Dragonfly adapter TTL behaviour lacks integration tests | PLANNED — Integration tests (with real Dragonfly instance or testcontainer) verify TTL expiry and `expire` semantics | PLANNED |
 
 ---
 
@@ -108,7 +126,7 @@
 |-----|-------------|----------|
 | Physical move of `phenotype-llm` dir to own Phenotype-org repo | refactor/remove-domain-squatters (workspace member removed; code preserved) | High — user decision required |
 | Physical move of `phenotype-mcp-server` dir to own Phenotype-org repo | refactor/remove-domain-squatters (workspace member removed; code preserved) | High — user decision required |
-| Consolidate `phenotype-observably-sentinel` + `tracely-sentinel` → `phenotype-resilience` | None | High — code duplication |
+| Consolidate `phenotype-observably-sentinel` + `tracely-sentinel` → `phenotype-resilience` | PLANNED — None | High — code duplication |
 | Alerting rule engine (threshold/anomaly/window) | PR feat/alerting-engine | SHIPPED |
 | Metrics aggregation depth (percentile/histogram) | PR feat/metrics-port | SHIPPED |
-| Dragonfly TTL integration tests | None | Low |
+| Dragonfly TTL integration tests | PLANNED — None | Low |

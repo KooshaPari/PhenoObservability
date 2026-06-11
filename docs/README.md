@@ -19,7 +19,8 @@ This index is the entry point for all documentation under `docs/`. Subdirectorie
 
 ### Research
 
-- [`docs/research/`](research/) — 2 docs
+- [`docs/research/SOTA-OBSERVABILITY.md`](research/SOTA-OBSERVABILITY.md) — Observability state-of-the-art synthesis
+- [`docs/research/SOTA-LOG-ANALYTICS.md`](research/SOTA-LOG-ANALYTICS.md) — Log analytics state-of-the-art synthesis
 
 ### Security
 
