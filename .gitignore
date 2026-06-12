@@ -32,3 +32,10 @@ coverage/
 # ===== End standard hygiene ignores =====
 /worktrees/
 /*-wtrees/
+
+# --- Org standard additions ---
+.astro/
+_stub/bin/
+_stub/obj/
+*.swp
+*.swo
