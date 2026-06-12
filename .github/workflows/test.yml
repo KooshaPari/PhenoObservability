@@ -9,7 +9,6 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-24.04
-    continue-on-error: true
     env:
       PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
@@ -63,7 +62,6 @@ jobs:
   coverage:
     name: Coverage Report
     runs-on: ubuntu-24.04
-    continue-on-error: true
     env:
       PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
@@ -111,8 +109,7 @@ jobs:
       - run: cargo tarpaulin --workspace --lib --out=Xml
         working-directory: PhenoObservability
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
-        continue-on-error: true
-        with:
+            with:
           files: PhenoObservability/cobertura.xml
           flags: unittests
 permissions:
