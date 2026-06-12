@@ -1,34 +1,54 @@
-# Build outputs
-target/
-dist/
-build/
+# Phenotype-org standard .gitignore — Python
+# Source: https://github.com/KooshaPari/phenotype-tooling/blob/main/templates/gitignore-python
 
-# Python
+# Byte-compiled / optimized
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
+*.so
+.Python
+
+# Virtual environments
 .venv/
 venv/
+ENV/
+env/
 
-# IDE
-.vscode/
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Editor
 .idea/
+.vscode/
+*.swp
 
 # OS
 .DS_Store
+Thumbs.db
 
-# Logs
-*.log
-
-# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
+# Repo-specific additions (preserved from prior .gitignore)
+!.env.example
 .env
 .env.*
-!.env.example
-node_modules/
-coverage/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-# ===== End standard hygiene ignores =====
-/worktrees/
-/*-wtrees/
+*.class
+*.log
+/*-wtrees
+/worktrees
+coverage
+node_modules
+target
