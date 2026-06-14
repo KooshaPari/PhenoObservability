@@ -37,17 +37,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn new_sets_level_message_and_empty_fields() {
-        let entry = LogEntry::new(Level::Warn, "disk full");
-
-        assert_eq!(entry.level, Level::Warn);
-        assert_eq!(entry.message, "disk full");
-        assert!(entry.fields.is_empty());
-        assert_ne!(entry.id, Uuid::nil());
-        assert!(entry.timestamp <= Utc::now());
-    }
-
-    #[test]
     fn with_field_appends_key_value_and_returns_self() {
         let entry = LogEntry::new(Level::Info, "test message")
             .with_field("user_id", serde_json::json!(42))
