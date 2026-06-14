@@ -1,54 +1,136 @@
-# Phenotype-org standard .gitignore — Python
-# Source: https://github.com/KooshaPari/phenotype-tooling/blob/main/templates/gitignore-python
-
-# Byte-compiled / optimized
-__pycache__/
-*.py[cod]
-*$py.class
+# Rust
+/target
+**/*.rs.bk
+*.pdb
+Cargo.lock.bak
+*.rlib
+*.rmeta
+*.d
 *.so
-.Python
+*.dylib
+*.dll
 
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
-*.egg
-.eggs/
-pip-wheel-metadata/
-
-# Test / coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-.mypy_cache/
-.ruff_cache/
-
-# Editor
+# IDE / Editor
 .idea/
 .vscode/
 *.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+.BIN/
 
-# Repo-specific additions (preserved from prior .gitignore)
-!.env.example
-.env
-.env.*
-*.class
+# Logs / Temp
 *.log
-/*-wtrees
-/worktrees
-coverage
-node_modules
-target
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+*.cache
+*.bak
+*.orig
+*.rej
+*.diff
+*.patch
+
+# Build artifacts
+/dist
+/build
+/out
+/.next
+/.nuxt
+/.output
+/.vercel
+/.turbo
+*.egg-info/
+*.egg
+*.whl
+__pycache__/
+*.py[cod]
+*.class
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+*.pyc
+*.pyo
+*.pyd
+
+# Node / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json.bak
+yarn.lock.bak
+*.tsbuildinfo
+.eslintcache
+
+# Go
+*.exe
+*.exe~
+*.test
+*.out
+vendor/
+
+# Python
+.venv/
+venv/
+env/
+ENV/
+*.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+.hypothesis/
+
+# Zig
+zig-cache/
+zig-out/
+
+# Mojo
+.mojo-cache/
+
+# WASI
+*.wasm
+
+# FFI / Bindings generated
+*.h.gch
+*.o
+*.a
+*.la
+*.lo
+
+# Security / Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets.*
+credentials.*
+!trufflehog.yml
+
+# CI / Tooling
+*.sarif
+.scannerwork/
+sonar-report/
