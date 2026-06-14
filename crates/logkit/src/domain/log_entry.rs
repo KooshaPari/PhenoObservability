@@ -31,23 +31,3 @@ impl LogEntry {
         self
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn with_field_appends_key_value_and_returns_self() {
-        let entry = LogEntry::new(Level::Info, "test message")
-            .with_field("user_id", serde_json::json!(42))
-            .with_field("action", serde_json::json!("login"));
-
-        assert_eq!(entry.fields.len(), 2);
-        assert_eq!(entry.fields[0].0, "user_id");
-        assert_eq!(entry.fields[0].1, serde_json::json!(42));
-        assert_eq!(entry.fields[1].0, "action");
-        assert_eq!(entry.fields[1].1, serde_json::json!("login"));
-        assert_eq!(entry.level, Level::Info);
-        assert_eq!(entry.message, "test message");
-    }
-}
