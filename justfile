@@ -33,3 +33,7 @@ ci: lint test audit unused
 
 docs:
     cargo doc --no-deps --workspace
+
+# Measure code coverage (SSOT: see grade.sh for the canonical command)
+coverage:
+    cargo llvm-cov --workspace --fail-under-lines 85
