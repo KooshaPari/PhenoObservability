@@ -1,17 +1,27 @@
 [package]
 name = "phenotype-observably-macros"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-description = "STUB: no-op async_instrumented macro that preserves the original function. Created 2026-06-11 to unblock the monorepo after PhenoObservability/ was lost. Real impl (wrapping `tracing::instrument` for async) is V4 §6 SOTA work (Side S)."
+description = "Procedural macros for PhenoObservability: `#[async_instrumented]` wraps an async fn in a real `tracing::Instrument`-wrapped future that opens a span across every `.await` point. Supports `name = \"...\"`, `level = \"...\"`, and `skip(...)` options. Sync fns are passed through unchanged."
 license = "MIT OR Apache-2.0"
 
 [lib]
 proc-macro = true
 
+[features]
+# When enabled (default), `#[async_instrumented]` emits a real
+# `tracing::Instrument`-wrapped future. When disabled the macro degenerates
+# to identity so downstream crates keep building without pulling in
+# `tracing` at runtime.
+tracing = ["dep:tracing"]
+
 [dependencies]
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
+tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["registry"] }
