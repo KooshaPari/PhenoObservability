@@ -104,6 +104,9 @@ PhenoObservability provides production-grade observability tooling including Ope
 - Composite alerts
 - Escalation policies
 
+### Runtime profiling
+Shell/Python profiler toolkit migrated from archived [Profila](https://github.com/KooshaPari/Profila) — see [`profiling/`](profiling/README.md) for CPU, memory, I/O, and complexity analysis scripts.
+
 ## Quick Start
 
 ```rust
