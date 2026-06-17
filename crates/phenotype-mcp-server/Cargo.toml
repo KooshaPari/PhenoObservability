@@ -13,7 +13,7 @@ tokio = { version = "1.39", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"
-phenotype-errors = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
+phenotype-errors = { path = "../../vendor/phenotype-errors" }
 rmcp = { version = "1.7", features = ["server", "macros", "transport-io"] }
 
 [dev-dependencies]
