@@ -1,8 +1,0 @@
-# Worktree directories (org policy)
-.worktrees/
-.claude/worktrees/
-
-# Python test artifacts
-__pycache__/
-*.pyc
-.pytest_cache/

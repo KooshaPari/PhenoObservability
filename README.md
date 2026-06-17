@@ -77,6 +77,7 @@ PhenoObservability provides production-grade observability tooling including Ope
 | **helix-logging** | Structured logging framework |
 | **logkit** (Logify subtree) | Hexagonal structured logging SDK (`crates/logkit/`) |
 | **tracingkit** | Comprehensive tracing toolkit |
+| **metrickit** | Hexagonal metrics (`Metron` absorption) |
 
 ## Features
 
@@ -124,15 +125,9 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-## ObservabilityKit (subtree)
+## Python observability facade
 
-The [ObservabilityKit](https://github.com/KooshaPari/ObservabilityKit) SDK is absorbed under `ObservabilityKit/` (squashed subtree). It ships language-specific SDKs; the Rust nested workspace lives at `ObservabilityKit/rust/`:
-
-```bash
-cargo check --manifest-path ObservabilityKit/rust/Cargo.toml --workspace
-```
-
-Root `cargo` workspace members under `crates/` remain canonical for PhenoObservability; ObservabilityKit crates are built from their nested workspace to avoid duplicate member names.
+Python SDK consumers should use [`phenotype-python-sdk/packages/observability-kit`](https://github.com/KooshaPari/phenotype-python-sdk/tree/main/packages/observability-kit). The archived `ObservabilityKit` repo and embedded subtree were removed to eliminate triple-copy maintenance.
 
 ## Logify / logkit (subtree)
 
@@ -155,6 +150,7 @@ crates/
 ├── tracely-core/         # Core tracing
 ├── tracely-sentinel/     # Sentinel monitoring
 ├── helix-logging/        # Structured logging
+├── metrickit/            # Metrics (Metron absorption)
 └── tracingkit/           # Tracing toolkit
 ```
 
