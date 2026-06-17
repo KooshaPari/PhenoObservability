@@ -10,6 +10,7 @@ members = [
     "crates/tracely-sentinel",
     "crates/helix-logging",
     "crates/tracingkit",
+    "crates/metrickit",
     "crates/phenotype-observably-tracing",
     "crates/phenotype-observably-logging",
     "crates/phenotype-observably-sentinel",

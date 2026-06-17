@@ -97,9 +97,8 @@ To be the observability standard where:
 
 ### 3.1 In Scope
 
-- Metrics (metrics/)
+- Metrics (`crates/metrickit`, `metrics/`)
 - Health (health/)
-- ObservabilityKit (ObservabilityKit/)
 - Tracing infrastructure
 
 ### 3.2 Out of Scope
@@ -134,7 +133,7 @@ To be the observability standard where:
 
 ## 6. Governance Model
 
-Note: Subdirectories metrics/, health/, ObservabilityKit/ have their own charters.
+Note: Subdirectories `metrics/`, `health/`, and workspace crate `crates/metrickit` have their own charters.
 
 - Instrumentation standards
 - Data retention policies
