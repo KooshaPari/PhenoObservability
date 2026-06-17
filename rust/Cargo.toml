@@ -29,4 +29,4 @@ async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
 prometheus = "0.13"
-phenotype-error-core = { git = "https://github.com/KooshaPari/HexaKit", branch = "main" }
+phenotype-error-core = { git = "https://github.com/KooshaPari/phenoShared.git", branch = "main" }
