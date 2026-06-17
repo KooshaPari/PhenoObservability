@@ -15,7 +15,7 @@ This document records where HexaKit observability modules land inside PhenoObser
 | HexaKit path | DISPOSITION # | HexaKit crate / alias | PhenoObservability target | Status |
 |---|---|---|---|---|
 | `Metron/` | 48 | `metrickit` | `rust/phenotype-metrics` | **Existing** — metrics facade and Prometheus export |
-| `Traceon/` | 49 | `tracingkit` | `crates/tracingkit` | **Existing** — distributed tracing (OTLP/Jaeger/Zipkin) |
+| `Traceon/` | 49 | `tracingkit` | `crates/tracingkit` | **Absorbed** — source parity verified 2026-06-17 ([rfc001-traceon-wave2.md](./rfc001-traceon-wave2.md)); HexaKit stub retained |
 | `crates/phenotype-logging` | 26 | `phenotype-logging` | `rust/phenotype-logging` | **Existing** — structured logging + OTEL bridge |
 | `crates/phenotype-telemetry` | 39 | `phenotype-telemetry` | `rust/phenotype-telemetry` | **Existing** — telemetry facade |
 | `crates/phenotype-health` | 22 | `phenotype-health` | `rust/phenotype-health` | **Existing** — health-check primitives |
