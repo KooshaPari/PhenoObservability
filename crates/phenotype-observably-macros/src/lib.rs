@@ -204,7 +204,6 @@ fn async_instrumented_impl(
         }
     };
 
-    let vis = &input.vis;
     let block = &input.block;
     let attrs = &input.attrs;
     let name_lit = LitStr::new(&name_str, input.sig.ident.span());
@@ -212,7 +211,7 @@ fn async_instrumented_impl(
     // With the `tracing` feature: emit a real Instrument-wrapped future.
     let enabled = quote! {
         #(#attrs)*
-        #vis #wrapped_sig {
+        #wrapped_sig {
             use ::tracing::Instrument as _;
             async move { #block }
                 .instrument(::tracing::span!(#level, #name_lit, #(#field_args),*))
@@ -222,7 +221,7 @@ fn async_instrumented_impl(
     // Without the `tracing` feature: pass-through (original async fn).
     let disabled = quote! {
         #(#attrs)*
-        #vis #input { #block }
+        #input
     };
 
     quote! {

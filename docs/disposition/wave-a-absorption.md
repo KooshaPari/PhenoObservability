@@ -20,7 +20,7 @@ This document records where HexaKit observability modules land inside PhenoObser
 | `crates/phenotype-telemetry` | 39 | `phenotype-telemetry` | `rust/phenotype-telemetry` | **Existing** — telemetry facade |
 | `crates/phenotype-health` | 22 | `phenotype-health` | `rust/phenotype-health` | **Existing** — health-check primitives |
 | `crates/phenotype-health` | 22 | — | `rust/phenotype-health-axum`, `rust/phenotype-health-cli` | **Existing** — HTTP/CLI adapters (PhenoObservability-only) |
-| `crates/phenotype-sentry-config` | 35 | `phenotype-sentry-config` | `rust/phenotype-sentry-config` (planned) | **Pending** — Sentry init not yet in `rust/` workspace |
+| `crates/phenotype-sentry-config` | 35 | `phenotype-sentry-config` | `rust/phenotype-sentry-config` | **Absorbed** — HexaKit source ported 2026-06-18 |
 
 ---
 
@@ -50,7 +50,7 @@ These modules were not HexaKit workspace members but already cover adjacent obse
 ## Follow-up lanes (out of scope for Wave A stubs)
 
 - Manifest surgery: remove HexaKit workspace members after chokepoint dependents repoint.
-- `phenotype-sentry-config`: add `rust/phenotype-sentry-config` workspace member and port HexaKit source.
+- ~~`phenotype-sentry-config`: add `rust/phenotype-sentry-config` workspace member and port HexaKit source.~~ Done 2026-06-18.
 - Metron `metrickit` hexagonal exporters: reconcile with `phenotype-metrics` API where implementations diverge.
 - Update `phenotype-registry/registry/disposition-index.json` FSM → `done` when exit gates close.
 
