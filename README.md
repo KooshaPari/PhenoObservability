@@ -19,14 +19,20 @@
 > human operator. Bug reports and contributions are still welcome, but please
 > expect AI-generated code, comments, and documentation throughout.
 <!-- AI-DD-META:END -->
+
+> **Boundary disposition (Block-C, 2026-06-17):** This repo is the canonical **`observe` role**
+> workspace — Rust tracing/metrics/logging/health live here.
+> **Python** consumers → [`phenotype-python-sdk/packages/observability-kit`](https://github.com/KooshaPari/phenotype-python-sdk/tree/main/packages/observability-kit).
+> See [`docs/boundary/DISPOSITION.md`](docs/boundary/DISPOSITION.md) · [`BOUNDARY.md`](BOUNDARY.md) · [`STATUS.md`](STATUS.md).
+
 ## Work State
 
 | Field | Value |
 |---|---|
-| Last commit | 2026-06-08 |
+| Last commit | 2026-06-17 |
 | Open issues | 6 |
 | Open PRs | 0 |
-| Focus | consolidate LogContext, Severity, RateLimiter, tracing init |
+| Focus | Block-C disposition; Wave A sentry-config port; phenotype-otel merge |
 
 Progress: ██████░░░░ 60%
 

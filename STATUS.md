@@ -1,26 +1,31 @@
 # PhenoObservability — Status
 
-**Last updated:** 2026-05-02
+**Last updated:** 2026-06-17  
+**Disposition:** [`docs/boundary/DISPOSITION.md`](docs/boundary/DISPOSITION.md)  
+**Audit:** [`docs/audit/BLOCK-C-AUDIT.md`](docs/audit/BLOCK-C-AUDIT.md)
 
-## Crate Status
+## Boundary verdict
 
-| Crate | Version | Status | Notes |
-|-------|---------|--------|-------|
-| tracely-core | active | ✅ Maintained | Core tracing + logging (absorbed helix-tracing, helix-logging) |
-| tracingkit | active | ✅ Maintained | High-level tracing utilities |
-| phenotype-observably-tracing | active | ✅ Maintained | OTel tracing integration |
-| phenotype-observably-logging | active | ✅ Maintained | Structured JSON logging |
-| phenotype-observably-macros | active | ✅ Maintained | Derive macros for observability |
-| phenotype-observably-sentinel | active | ✅ Maintained | Alerting + sentinel |
-| tracely-sentinel | active | ✅ Maintained | Sentinel implementation |
-| pheno-dragonfly | active | ✅ Maintained | Dragonfly metrics backend |
-| pheno-questdb | active | ✅ Maintained | QuestDB metrics storage |
-| phenotype-llm | active | ✅ Maintained | LLM observability |
-| phenotype-mcp-server | active | ✅ Maintained | MCP server for observability |
-| helix-logging | deprecated | ⚠️ Archived | Merged into tracely-core |
-| helix-tracing | deprecated | ⚠️ Archived | Merged into tracely-core |
+**AFFIRM / KEEP ACTIVE** — canonical `observe` role workspace; Python facade in SDK.
 
-## Known Issues
+| Layer | Status | Canonical owner |
+|-------|--------|-----------------|
+| Rust tracing (`tracingkit`, tracely-*) | Active | **This repo** `crates/` |
+| Rust metrics (`metrickit`, phenotype-metrics) | Active | **This repo** |
+| Rust logging / telemetry / health | Active | **This repo** `rust/` + `crates/` |
+| Wave A inbound (sentry-config) | Pending | **This repo** `rust/` (from HexaKit) |
+| Python observability facade | Redirect | `phenotype-python-sdk/packages/observability-kit` |
+| OTLP thin init | Pending merge | `phenotype-otel` → this repo |
+| G2 chokepoint repoint | Done | `vendor/` → phenoShared (Wave E) |
 
-- helix-logging and helix-tracing are dead code (see issue in AgilePlus/docs/issues/)
-- No ARCHITECTURE.md (planned)
+## Consumer guidance
+
+- **Rust:** git dependency on `KooshaPari/PhenoObservability` `main` (workspace crates) until crates.io publish.
+- **Python:** install from [`phenotype-python-sdk`](https://github.com/KooshaPari/phenotype-python-sdk) `packages/observability-kit` — ObservabilityKit subtree removed from this repo (PR #157).
+
+## Next actions
+
+1. Merge Block-C disposition PR.
+2. Port `phenotype-sentry-config` (Wave A #35).
+3. Merge `phenotype-otel`; decompose misplaced `rust/` crates.
+4. phenoShared publish → delete `vendor/`.
