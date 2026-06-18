@@ -5,42 +5,32 @@ source-commit: a1aa44660
 do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
                      or update in the source-of-truth registry repo
 -->
----
-repo: "PhenoObservability"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
----
+# phenoObservability — Boundary
 
-# Boundary — PhenoObservability
+> Stub boundary file generated on 2026-06-18 by `scripts/render-stubs.py`
+> for canonical repos with no curated prompts yet.
 
 ## In Scope
 
-<To be filled.>
+> **TODO**: fill in concrete capabilities owned by phenoObservability.
 
 ## Out of Scope
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| <capability> | <other-repo-or-N/A> | <why> |
+> **TODO**: list adjacent responsibilities owned elsewhere (cross-link
+> the canonical owning repo).
 
-## Boundary Crossings
+## Crossings
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| <capability or interface> | <this-repo→other or other→this-repo> | <Trait / HTTP / CLI / file / event> | <green or amber or red> |
+> **TODO**: list any repos whose boundaries phenoObservability overlaps and how
+> the overlap is resolved (port, adapter, shared library).
 
-## Last Boundary Review
+## Review cadence
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
+Weekly per ADR-024. Refresh by `scripts/render-per-repo.py --force`
+once any prompt binds to this repo.
 
-**Next review:** 2026-07-17
+## Source-of-Truth
+
+- ECOSYSTEM_MAP.md § 6 (role classification)
+- docs/intent/phenoObservability.md (intent statement)
+- docs/registries.md (Capability & Intent SSOT layer)
