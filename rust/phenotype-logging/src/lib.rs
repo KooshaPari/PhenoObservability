@@ -1,246 +1,152 @@
-//! # Phenotype Logging
+//! Canonical `tracing` initialization for the Phenotype ecosystem.
 //!
-//! Structured logging and telemetry utilities built on top of the tracing ecosystem.
+//! This crate exists so that downstream binaries and integration tests in
+//! `PhenoRuntime`, `PhenoAgent`, `PhenoMCP-cheap`, `HeliosLab`, and any
+//! other Phenotype polyrepo can call a single ergonomic helper instead of
+//! hand-rolling the 7-line `tracing_subscriber::fmt().with_env_filter(...).init()`
+//! block at the top of every `main.rs` and `tests/.../harness.rs`.
 //!
-//! ## Features
+//! The pattern honored here matches what already lives in those repos:
 //!
-//! - Structured JSON logging
-//! - Request context tracking
-//! - Performance timing spans
-//! - Distributed tracing
-//!
-//! ## Example
-//!
-//! ```rust
-//! use phenotype_logging::{init_logger, RequestContext};
-//!
-//! let _guard = init_logger();
-//!
-//! RequestContext::new("req-123")
-//!     .with_user("alice")
-//!     .scoped(|| {
-//!         log::info!("Processing request");
-//!     });
+//! ```text
+//! tracing_subscriber::fmt()
+//!     .with_env_filter(
+//!         tracing_subscriber::EnvFilter::try_from_default_env()
+//!             .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+//!     )
+//!     .with_target(false)
+//!     .init();
 //! ```
+//!
+//! Two entry points are provided:
+//!
+//! - [`init_tracing`] / [`init_tracing_with_default`] — fire-and-forget for
+//!   `fn main()`. Safe to call multiple times in the same process; the second
+//!   call is a no-op rather than a panic.
+//! - [`init_tracing_for_test`] — returns a [`tracing::subscriber::DefaultGuard`]
+//!   tied to its scope, for use in tests and library contexts where the global
+//!   subscriber must remain untouched.
+//!
+//! All public APIs are documented and every test references a Functional
+//! Requirement in `FUNCTIONAL_REQUIREMENTS.md` (FR-LOG-001..003).
 
-use std::sync::OnceLock;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
+use tracing_subscriber::EnvFilter;
 
-/// Initialize the global logger
-/// Initialize the global logging system
+/// Default `EnvFilter` directive used when `RUST_LOG` is unset or invalid.
 ///
-/// # Returns
-/// Ok(()) if initialization succeeds, or an error if logging was already initialized
+/// Matches the value used by the upstream callers in `PhenoRuntime`,
+/// `PhenoAgent`, and `HeliosLab`.
+pub const DEFAULT_FILTER: &str = "info";
+
+/// Initialize the global `tracing` subscriber using the canonical
+/// `EnvFilter`-from-`RUST_LOG` pattern.
 ///
-/// # Example
+/// Behavior:
+///
+/// - If `RUST_LOG` is set, its directives are honored (e.g.
+///   `RUST_LOG=debug,sqlx=warn`).
+/// - Otherwise, falls back to [`DEFAULT_FILTER`] (currently `"info"`).
+/// - Subsequent calls in the same process are no-ops, so it is safe to call
+///   from binaries, integration tests, and library entry points alike.
+///
+/// This is the **fire-and-forget** variant intended for `fn main()`. For
+/// scoped setup in tests, prefer [`init_tracing_for_test`].
+pub fn init_tracing() {
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(DEFAULT_FILTER));
+    // Use `try_init` so a re-init in the same process (e.g. across multiple
+    // integration test binaries linked into one test runner) is a no-op
+    // rather than a panic. The canonical `.init()` form lives in the docs
+    // and the in-tree PhenoRuntime/HeliosLab callers.
+    let _ = tracing_subscriber::fmt().with_env_filter(filter).with_target(false).try_init();
+}
+
+/// Initialize the global `tracing` subscriber with a custom default filter
+/// used when `RUST_LOG` is unset or invalid.
+///
+/// `RUST_LOG` still takes precedence when set. `default_filter` is parsed
+/// via [`EnvFilter::new`], so it must be a valid directive (e.g. `"info"`,
+/// `"debug"`, `"warn,sqlx=info"`).
+///
+/// # Examples
+///
+/// ```no_run
+/// use phenotype_logging::init_tracing_with_default;
+/// init_tracing_with_default("debug");
 /// ```
-/// use phenotype_logging::init_logger;
+pub fn init_tracing_with_default(default_filter: &str) {
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default_filter));
+    let _ = tracing_subscriber::fmt().with_env_filter(filter).with_target(false).try_init();
+}
+
+/// Scoped, guard-based variant for tests and library contexts where the
+/// default global subscriber must remain untouched.
 ///
-/// fn main() {
-///     init_logger().expect("Failed to initialize logger");
-/// }
+/// The supplied `filter_directive` is parsed via [`EnvFilter::new`] (not
+/// `try_from_default_env`) so behavior is deterministic in tests. The
+/// returned guard is `Drop`-able: dropping it restores the previous global
+/// subscriber.
+///
+/// # Examples
+///
+/// ```no_run
+/// use phenotype_logging::init_tracing_for_test;
+///
+/// let _guard = init_tracing_for_test("info");
+/// tracing::info!("captured for the lifetime of `_guard`");
 /// ```
-pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt::init();
-    Ok(())
-}
-
-/// Initialize logger with custom format
-pub fn init_logger_with_format(format: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let stdout_layer = match format {
-        "pretty" => tracing_subscriber::fmt::layer()
-            .pretty()
-            .with_filter(EnvFilter::from_default_env())
-            .boxed(),
-        _ => tracing_subscriber::fmt::layer()
-            .json()
-            .with_filter(EnvFilter::from_default_env())
-            .boxed(),
-    };
-
-    let subscriber = tracing_subscriber::registry().with(stdout_layer);
-    subscriber.init();
-    
-    Ok(())
-}
-
-/// Request context for structured logging
-#[derive(Debug, Clone)]
-pub struct RequestContext {
-    request_id: String,
-    user_id: Option<String>,
-    tenant_id: Option<String>,
-    client_ip: Option<String>,
-}
-
-impl RequestContext {
-    /// Create a new request context
-    pub fn new(request_id: impl Into<String>) -> Self {
-        Self {
-            request_id: request_id.into(),
-            user_id: None,
-            tenant_id: None,
-            client_ip: None,
-        }
-    }
-
-    /// Add user ID to context
-    pub fn with_user(mut self, user_id: impl Into<String>) -> Self {
-        self.user_id = Some(user_id.into());
-        self
-    }
-
-    /// Add tenant ID to context
-    pub fn with_tenant(mut self, tenant_id: impl Into<String>) -> Self {
-        self.tenant_id = Some(tenant_id.into());
-        self
-    }
-
-    /// Add client IP to context
-    pub fn with_client_ip(mut self, ip: impl Into<String>) -> Self {
-        self.client_ip = Some(ip.into());
-        self
-    }
-
-    /// Get the request ID
-    pub fn request_id(&self) -> &str {
-        &self.request_id
-    }
-
-    /// Execute a function within this context scope
-    pub fn scoped<F, R>(&self, f: F) -> R
-    where
-        F: FnOnce() -> R,
-    {
-        let _span = tracing::info_span!(
-            "request",
-            request_id = %self.request_id,
-            user_id = %self.user_id.as_deref().unwrap_or("anonymous"),
-            tenant_id = %self.tenant_id.as_deref().unwrap_or("default"),
-            client_ip = %self.client_ip.as_deref().unwrap_or("unknown"),
-        );
-
-        tracing::span::Span::current().in_scope(f)
-    }
-}
-
-impl Default for RequestContext {
-    fn default() -> Self {
-        Self::new(uuid::Uuid::new_v4().to_string())
-    }
-}
-
-/// Timing span for performance measurement
-pub struct TimingSpan {
-    name: String,
-    start: std::time::Instant,
-}
-
-impl TimingSpan {
-    /// Start a new timing span
-    pub fn new(name: impl Into<String>) -> Self {
-        let name = name.into();
-        let span = tracing::info_span!("timing", name = %name);
-        let _enter = span.enter();
-
-        Self {
-            name,
-            start: std::time::Instant::now(),
-        }
-    }
-
-    /// End the span and log elapsed time
-    pub fn end(self) -> std::time::Duration {
-        let elapsed = self.start.elapsed();
-        tracing::info!(
-            name = %self.name,
-            elapsed_ms = elapsed.as_millis() as u64,
-            "Operation completed"
-        );
-        elapsed
-    }
-}
-
-/// Configure logging with custom filter
-pub fn configure_logging(filter: &str) {
-    let _ = tracing_subscriber::fmt().with_env_filter(filter).try_init();
-}
-
-/// Log at info level with context
-#[macro_export]
-macro_rules! log_info {
-    ($($arg:tt)*) => {
-        tracing::info!($($arg)*)
-    };
-}
-
-/// Log at error level with context
-#[macro_export]
-macro_rules! log_error {
-    ($($arg:tt)*) => {
-        tracing::error!($($arg)*)
-    };
-}
-
-/// Log at warn level with context
-#[macro_export]
-macro_rules! log_warn {
-    ($($arg:tt)*) => {
-        tracing::warn!($($arg)*)
-    };
-}
-
-/// Log at debug level with context
-#[macro_export]
-macro_rules! log_debug {
-    ($($arg:tt)*) => {
-        tracing::debug!($($arg)*)
-    };
-}
-
-// Current request context (thread-local for sync, task-local for async)
-thread_local! {
-    static CURRENT_CONTEXT: OnceLock<RequestContext> = OnceLock::new();
-}
-
-/// Set the current request context
-pub fn set_current_context(ctx: RequestContext) {
-    CURRENT_CONTEXT.with(|cell| {
-        let _ = cell.set(ctx);
-    });
-}
-
-/// Get the current request context if set
-pub fn current_context() -> Option<RequestContext> {
-    CURRENT_CONTEXT.with(|cell| cell.get().cloned())
+pub fn init_tracing_for_test(filter_directive: &str) -> tracing::subscriber::DefaultGuard {
+    let filter = EnvFilter::new(filter_directive);
+    let subscriber = tracing_subscriber::fmt().with_env_filter(filter).with_target(false).finish();
+    tracing::subscriber::set_default(subscriber)
 }
 
 #[cfg(test)]
 mod tests {
+    //! Inline tests, per the phenoShared convention. Each test references an
+    //! FR ID in `FUNCTIONAL_REQUIREMENTS.md` so the FR-traceability matrix
+    //! remains intact.
+
     use super::*;
 
+    /// Traces to: FR-LOG-001
+    ///
+    /// `init_tracing` must be safe to call multiple times in the same process
+    /// without panicking. This is the property that makes it usable in
+    /// integration test binaries (one per test file) and `main()` shims
+    /// alike.
     #[test]
-    fn test_request_context() {
-        let ctx = RequestContext::new("test-123")
-            .with_user("alice")
-            .with_tenant("acme");
-
-        assert_eq!(ctx.request_id(), "test-123");
+    fn test_init_tracing_is_idempotent() {
+        init_tracing();
+        init_tracing();
+        init_tracing_with_default("debug");
+        init_tracing_with_default("trace");
     }
 
+    /// Traces to: FR-LOG-002
+    ///
+    /// `init_tracing_with_default` must accept any string that
+    /// [`EnvFilter::new`] accepts (e.g. `info`, `debug`, `warn,sqlx=info`)
+    /// without panicking. We only assert the API surface here because the
+    /// function uses `try_init` internally.
     #[test]
-    fn test_timing_span() {
-        let span = TimingSpan::new("test_operation");
-        std::thread::sleep(std::time::Duration::from_millis(10));
-        let elapsed = span.end();
-        assert!(elapsed.as_millis() >= 10);
+    fn test_init_tracing_with_default_accepts_known_directives() {
+        init_tracing_with_default("info");
+        init_tracing_with_default("debug");
+        init_tracing_with_default("warn,sqlx=info");
     }
 
+    /// Traces to: FR-LOG-003
+    ///
+    /// The scoped guard variant must construct successfully and be
+    /// `Drop`-able. Dropping the guard restores the prior global
+    /// subscriber, so this test runs in isolation.
     #[test]
-    fn test_default_context() {
-        let ctx = RequestContext::default();
-        // Should have a UUID as request_id
-        assert!(!ctx.request_id().is_empty());
-        assert_ne!(ctx.request_id(), "test-123"); // Different from explicit
+    fn test_init_tracing_for_test_returns_droppable_guard() {
+        let _guard = init_tracing_for_test("info");
+        // Allow tracing macros to be used; they will be captured by `_guard`.
+        tracing::info!("captured by init_tracing_for_test guard");
+        // Drop happens at end of scope; no panic means the test passes.
     }
 }
