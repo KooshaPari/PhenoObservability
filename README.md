@@ -218,3 +218,12 @@ Maintain **80%+ code coverage** on all crates. See `docs/FUNCTIONAL_REQUIREMENTS
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+## Documentation
+
+This repository includes the following cross-cutting documents:
+
+- [`AGENTS.md`](AGENTS.md) — operating instructions for AI agents and human contributors
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — system architecture and component overview
+- [`docs/`](docs/) — design notes, ADRs, and supporting documentation (see [`docs/index.md`](docs/index.md))
+
