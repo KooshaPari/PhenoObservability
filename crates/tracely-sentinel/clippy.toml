@@ -1,3 +1,0 @@
-# Clippy configuration for phenotype-sentinel
-
-avoid-breaking-exported-api = false
