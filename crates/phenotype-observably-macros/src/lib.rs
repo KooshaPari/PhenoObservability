@@ -138,14 +138,56 @@ fn span_field_args(
 }
 
 /// Render the function's return type as `impl ::core::future::Future<Output = T>`.
+///
+/// The trailing `+ 'fn_lifetime` is what allows the returned `impl Trait`
+/// to borrow from the function's input parameters (e.g. `&str`). Without
+/// it the compiler rejects the wrapper with E0700 "hidden type captures
+/// lifetime that does not appear in bounds" because `impl Future<...>`
+/// has no syntactic slot for the input lifetimes to flow through.
 fn future_return_type(output: &ReturnType) -> proc_macro2::TokenStream {
     match output {
         ReturnType::Default => {
-            quote! { impl ::core::future::Future<Output = ()> }
+            quote! { impl ::core::future::Future<Output = ()> + 'fn_lifetime }
         }
         ReturnType::Type(arrow, ty) => {
-            quote! { #arrow impl ::core::future::Future<Output = #ty> }
+            quote! { #arrow impl ::core::future::Future<Output = #ty> + 'fn_lifetime }
         }
+    }
+}
+
+/// Walk a type and replace every anonymous lifetime `'_` with `target`.
+/// Used to make `&str` arguments explicitly borrow from `'fn_lifetime`
+/// so the generated `impl Future + 'fn_lifetime` wrapper compiles.
+fn rewrite_anonymous_lifetimes(ty: &mut syn::Type, target: &syn::Lifetime) {
+    match ty {
+        syn::Type::Reference(r#ref) => {
+            // If the reference has no lifetime or has an anonymous
+            // lifetime `'_`, install the target.
+            match &r#ref.lifetime {
+                None => r#ref.lifetime = Some(target.clone()),
+                Some(lt) if lt.ident == "_" => r#ref.lifetime = Some(target.clone()),
+                _ => {}
+            }
+            rewrite_anonymous_lifetimes(&mut r#ref.elem, target);
+        }
+        syn::Type::Tuple(t) => {
+            for elem in t.elems.iter_mut() {
+                rewrite_anonymous_lifetimes(elem, target);
+            }
+        }
+        syn::Type::Array(a) => {
+            rewrite_anonymous_lifetimes(&mut a.elem, target);
+        }
+        syn::Type::Group(g) => {
+            rewrite_anonymous_lifetimes(&mut g.elem, target);
+        }
+        syn::Type::Paren(p) => {
+            rewrite_anonymous_lifetimes(&mut p.elem, target);
+        }
+        syn::Type::Slice(s) => {
+            rewrite_anonymous_lifetimes(&mut s.elem, target);
+        }
+        _ => {}
     }
 }
 
@@ -190,8 +232,34 @@ fn async_instrumented_impl(
     // Build the wrapped signature: drop `async`, return
     // `impl Future<Output = T>` so the body can be wrapped in
     // `.instrument(span)` and still be `Send` across `.await`.
+    //
+    // We inject a synthetic `'fn_lifetime` parameter at the front of
+    // the function's generics so the returned `impl Future` can borrow
+    // from the caller's input parameters (e.g. `&str`). Without this,
+    // Rust rejects the wrapper with E0700 "hidden type captures
+    // lifetime that does not appear in bounds".
     let mut wrapped_sig = input.sig.clone();
     wrapped_sig.asyncness = None;
+
+    // Prepend `'fn_lifetime` to the existing generics (if any).
+    let synthetic_lt: syn::GenericParam = syn::parse_quote! { 'fn_lifetime };
+    wrapped_sig
+        .generics
+        .params
+        .insert(0, synthetic_lt);
+
+    // Rewrite every reference input type from the anonymous lifetime
+    // `&'_ T` to `&'fn_lifetime T`. Without this rewrite, the original
+    // `&str` arguments would still elide to a fresh anonymous lifetime
+    // rather than the synthetic `'fn_lifetime` we just added — producing
+    // E0621 "explicit lifetime required".
+    let fn_lt: syn::Lifetime = syn::parse_quote! { 'fn_lifetime };
+    for arg in wrapped_sig.inputs.iter_mut() {
+        if let syn::FnArg::Typed(pat_type) = arg {
+            rewrite_anonymous_lifetimes(&mut pat_type.ty, &fn_lt);
+        }
+    }
+
     let fut_ret = future_return_type(&input.sig.output);
     wrapped_sig.output = match syn::parse2::<ReturnType>(fut_ret) {
         Ok(rt) => rt,
@@ -209,6 +277,12 @@ fn async_instrumented_impl(
     let name_lit = LitStr::new(&name_str, input.sig.ident.span());
 
     // With the `tracing` feature: emit a real Instrument-wrapped future.
+    //
+    // The synthetic `'fn_lifetime` parameter (prepended to the function's
+    // generics, see `wrapped_sig` construction above) is what lets the
+    // returned `impl Future<...> + 'fn_lifetime` borrow from the caller's
+    // input parameters. Without it the wrapper fails to compile with
+    // E0700 "hidden type captures lifetime that does not appear in bounds".
     let enabled = quote! {
         #(#attrs)*
         #wrapped_sig {
@@ -219,6 +293,9 @@ fn async_instrumented_impl(
     };
 
     // Without the `tracing` feature: pass-through (original async fn).
+    // NB: `#input` already includes the user's `vis`, so do NOT prepend
+    // `#vis` here — doing so would emit `pub pub async fn ...` for any
+    // user-written `pub` input (see commit history; this was a real bug).
     let disabled = quote! {
         #(#attrs)*
         #input

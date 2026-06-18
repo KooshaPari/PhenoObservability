@@ -13,7 +13,9 @@ proc-macro = true
 # `tracing::Instrument`-wrapped future. When disabled the macro degenerates
 # to identity so downstream crates keep building without pulling in
 # `tracing` at runtime.
+default = ["tracing"]
 tracing = ["dep:tracing"]
+
 
 [dependencies]
 quote = "1"
@@ -25,3 +27,8 @@ tracing = { version = "0.1", optional = true }
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["registry"] }
+# `futures_lite::future::block_on` lets us drive an `async fn` from a
+# synchronous `#[test]` without spinning up a tokio runtime, which avoids
+# the thread-local subscriber being installed on a different worker thread
+# from where the span is created. Used by `consumer_instrumentation.rs`.
+futures-lite = "2"
