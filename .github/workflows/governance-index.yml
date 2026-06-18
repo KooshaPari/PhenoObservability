@@ -1,3 +1,5 @@
+03:14:07.603584 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+03:14:07.648625 git.c:476               trace: built-in: git show origin/chore/phenoobservability-ubuntu-pin-2026-06-12:.github/workflows/governance-index.yml
 name: Governance Index
 
 on:
@@ -11,7 +13,7 @@ permissions:
 
 jobs:
   governance-index:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Regenerate governance index
