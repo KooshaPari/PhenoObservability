@@ -143,6 +143,28 @@ The [Logify](https://github.com/KooshaPari/Logify) structured-logging SDK is abs
 cargo check --manifest-path crates/logkit/Cargo.toml
 ```
 
+## Absorbed crates (P3, L5-105, 2026-06-18)
+
+Two source repos have been absorbed as workspace members under `crates/`:
+
+| Crate | Path | Source repo | Absorption PR | Source parity |
+|---|---|---|---|---|
+| **`metrickit`** | `crates/metrickit/` | [`KooshaPari/Metron`](https://github.com/KooshaPari/Metron) | [#157](https://github.com/KooshaPari/PhenoObservability/pull/157) (merged 2026-06-17) | byte-identical `src/`, `tests/`, `README.md`; workspace-aligned `Cargo.toml` |
+| **`tracingkit`** | `crates/tracingkit/` | [`KooshaPari/Traceon`](https://github.com/KooshaPari/Traceon) | [#161](https://github.com/KooshaPari/PhenoObservability/pull/161) (merged 2026-06-17) | byte-identical `src/`, `README.md`; workspace-aligned `Cargo.toml` |
+
+See [`docs/migrations/metron-traceon-merge-2026-06-18.md`](docs/migrations/metron-traceon-merge-2026-06-18.md) for the full P3 completion record (validation evidence, source-archive gate, downstream-consumer impact, post-absorption drift analysis).
+
+To migrate any downstream consumer that depends on the source repos:
+
+```diff
+- metrickit = { git = "https://github.com/KooshaPari/Metron", branch = "main" }
++ metrickit = { git = "https://github.com/KooshaPari/PhenoObservability", branch = "main" }
+- tracingkit = { git = "https://github.com/KooshaPari/Traceon", branch = "main" }
++ tracingkit = { git = "https://github.com/KooshaPari/PhenoObservability", branch = "main" }
+```
+
+Crate names (`metrickit`, `tracingkit`) are unchanged, so `use` statements and `Cargo.toml` keys are unchanged.
+
 ## Architecture
 
 ```
@@ -156,8 +178,8 @@ crates/
 ├── tracely-core/         # Core tracing
 ├── tracely-sentinel/     # Sentinel monitoring
 ├── helix-logging/        # Structured logging
-├── metrickit/            # Metrics (Metron absorption)
-└── tracingkit/           # Tracing toolkit
+├── metrickit/            # Metrics (Metron absorption, P3 L5-105)
+└── tracingkit/           # Tracing toolkit (Traceon absorption, P3 L5-105)
 ```
 
 ## Technology Stack

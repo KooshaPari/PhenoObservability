@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Added
-- N/A
+- **P3, L5-105 (2026-06-18):** Absorption completion record for `Metron` + `Traceon` → `PhenoObservability`. Both repos are already absorbed as workspace members `crates/metrickit` (PR #157, 2026-06-17) and `crates/tracingkit` (PR #161, 2026-06-17). This changelog entry records the completion of P3 per `phenotype-registry/ECOSYSTEM_MAP.md §6`. See `docs/migrations/metron-traceon-merge-2026-06-18.md` for full validation evidence (69/69 tests pass, byte-identical source parity for `src/`, `tests/`, `README.md`; workspace-aligned `Cargo.toml` per ADR-022 fleet pattern). Source repos `KooshaPari/Metron` and `KooshaPari/Traceon` are left in place pending human archive confirmation (L5-105 §5).
 
 ---
 
