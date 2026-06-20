@@ -41,7 +41,7 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
 parking_lot = "0.12"
-phenotype-error-core = { git = "https://github.com/KooshaPari/phenoShared.git", branch = "main" }
+phenotype-error-core = { git = "https://github.com/KooshaPari/phenotype-types", branch = "main" }
 phenotype-errors = { path = "vendor/phenotype-errors" }
 phenotype-event-bus = { path = "vendor/phenotype-event-bus" }
 phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }

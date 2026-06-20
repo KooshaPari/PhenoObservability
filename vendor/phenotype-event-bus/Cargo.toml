@@ -16,7 +16,7 @@ async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }
 ulid = { version = "1", features = ["serde"] }
 dashmap = "6.1"
-phenotype-error-core = { git = "https://github.com/KooshaPari/phenoShared.git", branch = "main" }
+phenotype-error-core = { git = "https://github.com/KooshaPari/phenotype-types", branch = "main" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
