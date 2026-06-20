@@ -10,16 +10,7 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-24.04
     continue-on-error: true
-    env:
-      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
-      - name: Check private dependency token
-        run: |
-          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
-            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::tests need read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
-            echo "Create repository secret PHENOTYPE_REPO_READ_TOKEN with read-only contents access to KooshaPari/phenotype-bus."
-            exit 1
-          fi
       - name: Download PhenoObservability source
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,15 +33,6 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - name: Download private phenotype-bus dependency
-        run: |
-          mkdir -p phenotype-bus
-          curl -fsSL \
-            -H "Authorization: Bearer ${PHENOTYPE_REPO_READ_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
-            -o phenotype-bus.tgz
-          tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
       - uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
         with:
@@ -64,17 +46,7 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-24.04
     continue-on-error: true
-    env:
-      PHENOTYPE_REPO_READ_TOKEN: ${{ secrets.PHENOTYPE_REPO_READ_TOKEN }}
     steps:
-      - name: Check private dependency token
-        run: |
-          if [ -z "${PHENOTYPE_REPO_READ_TOKEN}" ]; then
-            echo "::error title=Missing PHENOTYPE_REPO_READ_TOKEN::coverage needs read-only access to KooshaPari/phenotype-bus, which is a private sibling dependency."
-            echo "Create repository secret PHENOTYPE_REPO_READ_TOKEN with read-only contents access to KooshaPari/phenotype-bus."
-            exit 1
-          fi
-
       - name: Download PhenoObservability source
         env:
           GH_TOKEN: ${{ github.token }}
@@ -97,15 +69,6 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - name: Download private phenotype-bus dependency
-        run: |
-          mkdir -p phenotype-bus
-          curl -fsSL \
-            -H "Authorization: Bearer ${PHENOTYPE_REPO_READ_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/KooshaPari/phenotype-bus/tarball/main" \
-            -o phenotype-bus.tgz
-          tar -xzf phenotype-bus.tgz --strip-components=1 -C phenotype-bus
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
       - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
@@ -121,4 +84,3 @@ permissions:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-

@@ -2,49 +2,36 @@
 
 ## Context
 
-`PhenoObservability` has two sibling Rust dependencies:
+`PhenoObservability` has one external sibling Rust dependency in CI:
 
 - `../pheno/crates/phenotype-errors`
-- `../../../phenotype-bus`
 
-`KooshaPari/pheno` is public, but `KooshaPari/phenotype-bus` is private. The
-default GitHub Actions `GITHUB_TOKEN` for `PhenoObservability` cannot read that
-sibling private repository, so `cargo metadata` and `cargo-deny` cannot resolve
-the workspace in a clean CI checkout without an explicit read credential.
+The previous CI workflow also downloaded `KooshaPari/phenotype-bus`, but the
+active workspace now resolves event-bus types through `vendor/phenotype-event-bus`.
+The `phenotype-bus` tarball was a stale integration-test fixture and is no
+longer required for the current `cargo test --workspace --lib` and coverage
+jobs.
 
 ## Required Secret
 
-Create repository secret `PHENOTYPE_REPO_READ_TOKEN` in
-`KooshaPari/PhenoObservability`.
-
-The token should be one of:
-
-- a fine-grained PAT with read-only `contents` access to `KooshaPari/phenotype-bus`
-- a GitHub App installation token with read-only access to `KooshaPari/phenotype-bus`
-
-Do not use a broad personal token when a repository-scoped or app-scoped token is
-available.
+No private sibling read token is required for the default CI jobs.
 
 ## Why the dependency was not rerouted
 
-Changing `phenotype-bus` to a `git = ...` dependency does not remove the private
-access requirement; Cargo would still need credentials to fetch the private repo.
-
-Routing to `PhenoProc` is also not equivalent yet. `PhenoProc` currently has a
-different `phenotype-event-bus` crate surface, while `phenotype-bus` remains the
-typed async pub/sub crate consumed by the observability crates.
+Routing to `PhenoProc` is still not equivalent for the historical
+`phenotype_bus_observability_e2e` integration fixture. `PhenoProc` currently has
+a different `phenotype-event-bus` crate surface, while the archived
+`phenotype-bus` fixture used the typed async pub/sub API.
 
 ## Validation
 
-After the secret is configured, CI jobs that need Cargo dependency resolution
-check out:
+CI jobs that need Cargo dependency resolution check out:
 
 - `PhenoObservability` at `./PhenoObservability`
 - `pheno` at `./pheno`
-- `phenotype-bus` at `./phenotype-bus`
 
-This layout matches the existing path dependencies and allows cargo-deny and the
-Rust test jobs to resolve the same workspace graph:
+This layout matches the active path dependencies and allows cargo-deny and the
+Rust test jobs to resolve the workspace graph:
 
 ```bash
 cargo deny check --manifest-path PhenoObservability/Cargo.toml
