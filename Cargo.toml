@@ -15,6 +15,7 @@ members = [
     "crates/phenotype-observably-sentinel",
     "crates/phenotype-observably-macros",
     "crates/phenotype-observably-ports",
+    "pheno-otel",
 ]
 
 [workspace.package]
