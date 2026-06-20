@@ -55,6 +55,24 @@ Progress: ██████░░░░ 60%
 
 # PhenoObservability
 
+## Quickstart
+
+> Phenotype-org observability primitives: tracing, metrics, logs
+
+```bash
+# Clone, build, test
+git clone https://github.com/KooshaPari/PhenoObservability.git
+cd PhenoObservability
+```
+
+```rust
+// Add to Cargo.toml:
+// phenoobservability = "<version>"
+```
+
+See [SPEC.md](SPEC.md) for the full specification and [llms.txt](llms.txt) for machine-readable metadata.
+
+
 **Status:** maintenance
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
