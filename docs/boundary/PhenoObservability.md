@@ -5,24 +5,26 @@ source-commit: a1aa44660
 do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
                      or update in the source-of-truth registry repo
 -->
-# phenoObservability — Boundary
+# phenoObservability -- Boundary
 
-> Stub boundary file generated on 2026-06-18 by `scripts/render-stubs.py`
-> for canonical repos with no curated prompts yet.
+> Boundary file for phenoObservability. Filled with real prose 2026-06-19.
 
 ## In Scope
 
-> **TODO**: fill in concrete capabilities owned by phenoObservability.
+OTel collector config; PII redaction rules; tenant routing; Grafana dashboards; alert rules
 
 ## Out of Scope
 
-> **TODO**: list adjacent responsibilities owned elsewhere (cross-link
-> the canonical owning repo).
+Application telemetry emission (lives in pheno-otel); log storage backends; on-call rotations
 
 ## Crossings
 
-> **TODO**: list any repos whose boundaries phenoObservability overlaps and how
-> the overlap is resolved (port, adapter, shared library).
+phenoObservability crosses into other Phenotype repos at the following seams:
+
+- **Auth**: depends on AuthKit `typescript/packages/auth-ts/`
+- **Telemetry**: emits OTel traces via pheno-otel
+- **Config**: resolves from `phenotype-config` schema (Pydantic + Zod)
+- **Versioning**: pinned to the pheno-standards `{major.minor}` channel
 
 ## Review cadence
 
@@ -31,6 +33,6 @@ once any prompt binds to this repo.
 
 ## Source-of-Truth
 
-- ECOSYSTEM_MAP.md § 6 (role classification)
-- docs/intent/phenoObservability.md (intent statement)
-- docs/registries.md (Capability & Intent SSOT layer)
+- `phenotype-registry/ECOSYSTEM_MAP.md` section 6 (role classification)
+- `docs/intent/phenoObservability.md` (intent statement)
+- `docs/registries.md` section 'Capability & Intent SSOT' (registry layer)
