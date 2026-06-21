@@ -45,3 +45,9 @@ phenotype-error-core = { git = "https://github.com/KooshaPari/phenotype-types", 
 phenotype-errors = { path = "vendor/phenotype-errors" }
 phenotype-event-bus = { path = "vendor/phenotype-event-bus" }
 phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
+# L62 (error rate) observability adoption (v14 cycle-4 T7). The
+# `pheno-otel` substrate provides the `metrics::record_error` /
+# `metrics::record_request` helpers; consumer crates (e.g.
+# `phenotype-sentinel`) pull this in to surface fleet-wide L62
+# error-rate observability per ADR-036B + ADR-042.
+pheno-otel = { path = "../pheno-otel" }

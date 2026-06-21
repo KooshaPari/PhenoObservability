@@ -123,6 +123,12 @@ impl CircuitBreaker {
         F: FnOnce() -> Result<T, E>,
     {
         if !self.is_allowed() {
+            // L62 (error rate) observability adoption (v14 cycle-4 T7):
+            // surface circuit-breaker rejection as a fleet-wide error metric.
+            pheno_otel::metrics::record_error(
+                "phenotype_sentinel.circuit_breaker.execute",
+                "circuit_open",
+            );
             return Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()));
         }
 
@@ -134,6 +140,12 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
+                    // L62 (error rate) observability adoption (v14 cycle-4 T7):
+                    // surface half-open failure as a fleet-wide error metric.
+                    pheno_otel::metrics::record_error(
+                        "phenotype_sentinel.circuit_breaker.execute",
+                        "half_open_failure",
+                    );
                     Err(CircuitBreakerError::Validation(
                         "Circuit breaker is half-open, request not allowed".to_string(),
                     ))
@@ -146,6 +158,12 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
+                    // L62 (error rate) observability adoption (v14 cycle-4 T7):
+                    // surface wrapped-call failure as a fleet-wide error metric.
+                    pheno_otel::metrics::record_error(
+                        "phenotype_sentinel.circuit_breaker.execute",
+                        "wrapped_call_failed",
+                    );
                     Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()))
                 }
             },
