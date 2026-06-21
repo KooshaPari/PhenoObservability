@@ -6,9 +6,9 @@
 
 - `../pheno/crates/phenotype-errors`
 
-The previous CI workflow also downloaded `KooshaPari/phenotype-bus`, but the
+The previous CI workflow also downloaded `KooshaPari/phenotype-event-bus`, but the
 active workspace now resolves event-bus types through `vendor/phenotype-event-bus`.
-The `phenotype-bus` tarball was a stale integration-test fixture and is no
+The `phenotype-event-bus` tarball was a stale integration-test fixture and is no
 longer required for the current `cargo test --workspace --lib` and coverage
 jobs.
 
@@ -19,9 +19,9 @@ No private sibling read token is required for the default CI jobs.
 ## Why the dependency was not rerouted
 
 Routing to `PhenoProc` is still not equivalent for the historical
-`phenotype_bus_observability_e2e` integration fixture. `PhenoProc` currently has
+`phenotype_event_bus_observability_e2e` integration fixture. `PhenoProc` currently has
 a different `phenotype-event-bus` crate surface, while the archived
-`phenotype-bus` fixture used the typed async pub/sub API.
+`phenotype-event-bus` fixture used the typed async pub/sub API.
 
 ## Validation
 
