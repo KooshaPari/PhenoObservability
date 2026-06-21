@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::code::ErrorCode;
 use crate::layered::{ApiError, DomainError, RepositoryError};
@@ -10,7 +10,7 @@ pub struct ErrorEnvelope {
     pub code: ErrorCode,
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub details: Option<Value>,
+    pub details: Option<Map<String, Value>>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub fatal: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -24,7 +24,7 @@ impl ErrorEnvelope {
     }
 
     /// Add structured detail data.
-    pub fn with_details(mut self, details: Value) -> Self {
+    pub fn with_details(mut self, details: Map<String, Value>) -> Self {
         self.details = Some(details);
         self
     }
@@ -47,19 +47,19 @@ impl From<&ApiError> for ErrorEnvelope {
         let envelope = match err {
             ApiError::NotFound { resource, id } => {
                 Self::new(err.error_code(), format!("{resource} {id} not found")).with_details(
-                    serde_json::json!({
-                        "resource": resource,
-                        "id": id,
-                    }),
+                    Map::from_iter([
+                        ("resource".to_string(), Value::String(resource.clone())),
+                        ("id".to_string(), Value::String(id.clone())),
+                    ]),
                 )
             }
             ApiError::Domain(DomainError::NotFound { entity, id })
             | ApiError::Repository(RepositoryError::NotFound { entity, id }) => {
                 Self::new(err.error_code(), format!("{entity} {id} not found")).with_details(
-                    serde_json::json!({
-                        "entity": entity,
-                        "id": id,
-                    }),
+                    Map::from_iter([
+                        ("resource".to_string(), Value::String(entity.clone())),
+                        ("id".to_string(), Value::String(id.clone())),
+                    ]),
                 )
             }
             _ => Self::new(err.error_code(), err.to_string()),
@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn error_envelope_serialization_matches_fixture() {
         let envelope = ErrorEnvelope::new(ErrorCode::ValidationError, "Invalid lane name")
-            .with_details(json!({"field": "lane.name"}))
+            .with_details(json!({"field": "lane.name"}).as_object().unwrap().clone())
             .with_retryable(false);
         let fixture = include_str!("../../../contracts/errors/fixtures/validation-error.json");
         let fixture_json: Value = serde_json::from_str(fixture).unwrap();

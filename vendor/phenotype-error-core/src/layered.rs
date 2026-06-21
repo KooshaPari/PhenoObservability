@@ -41,7 +41,12 @@ impl ApiError {
             Self::RateLimited => 429,
             Self::Timeout => 504,
             Self::Internal(_) => 500,
+            Self::Domain(DomainError::NotFound { .. }) => 404,
+            Self::Domain(DomainError::Duplicate { .. }) => 409,
+            Self::Domain(DomainError::NotPermitted(_)) => 403,
             Self::Domain(_) => 422,
+            Self::Repository(RepositoryError::NotFound { .. }) => 404,
+            Self::Repository(RepositoryError::Duplicate { .. }) => 409,
             Self::Repository(_) => 500,
         }
     }
