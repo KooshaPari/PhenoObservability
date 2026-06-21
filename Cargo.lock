@@ -1708,7 +1708,6 @@ dependencies = [
 [[package]]
 name = "phenotype-error-core"
 version = "0.2.0"
-source = "git+https://github.com/KooshaPari/phenotype-types?branch=main#dd14f735c373e66b1907b7d5d66d3e175abe1df2"
 dependencies = [
  "anyhow",
  "chrono",
