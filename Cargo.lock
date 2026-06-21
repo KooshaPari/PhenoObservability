@@ -1580,6 +1580,7 @@ dependencies = [
  "futures-sink",
  "js-sys",
  "once_cell",
+ "pin-project-lite",
  "thiserror 1.0.69",
 ]
 
