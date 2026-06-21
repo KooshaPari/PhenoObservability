@@ -1,5 +1,10 @@
 name: Release Dry-Run
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 on:
   pull_request:
     paths:
@@ -38,7 +43,7 @@ jobs:
         with:
           script: |
             const version = '${{ steps.version.outputs.version }}';
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
