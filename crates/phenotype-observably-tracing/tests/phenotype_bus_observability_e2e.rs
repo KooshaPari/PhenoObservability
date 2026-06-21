@@ -1,13 +1,13 @@
-//! End-to-end integration tests for phenotype-bus → PhenoObservably OTEL emission.
+//! End-to-end integration tests for phenotype-event-bus → PhenoObservably OTEL emission.
 //! Traces to: FR-OBS-E2E-001
 //!
 //! Validates real cross-collection event flow:
-//! 1. Sidekick event published on phenotype-bus
+//! 1. Sidekick event published on phenotype-event-bus
 //! 2. Observably subscribes and emits structured logging event
 //! 3. Observably emits OTEL span and metric counter
 //! 4. OTEL stdout exporter captures emission (no external collector required)
 
-use phenotype_bus::{Bus, Event};
+use phenotype_event_bus::{Bus, Event};
 use phenotype_observably_tracing::MetricsRegistry;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -19,7 +19,7 @@ use tracing::info;
 static INIT_TRACING: Once = Once::new();
 
 // ============================================================================
-// Event Types (mirrored from phenotype-bus demos)
+// Event Types (mirrored from phenotype-event-bus demos)
 // ============================================================================
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -72,7 +72,7 @@ impl Event for StashlyStorageEvent {
 #[tokio::test]
 async fn test_sidekick_cache_miss_to_observably_logging() {
     // Traces to: FR-OBS-E2E-001, Test 1/4
-    // Validates: phenotype-bus event → Observably structured log emission
+    // Validates: phenotype-event-bus event → Observably structured log emission
 
     INIT_TRACING.call_once(|| {
         let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
@@ -127,7 +127,7 @@ async fn test_sidekick_cache_miss_to_observably_logging() {
 #[tokio::test]
 async fn test_focus_eval_rule_fired_to_observably_metrics() {
     // Traces to: FR-OBS-E2E-001, Test 2/4
-    // Validates: phenotype-bus event → Observably metric counter increment
+    // Validates: phenotype-event-bus event → Observably metric counter increment
 
     INIT_TRACING.call_once(|| {
         let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
@@ -185,7 +185,7 @@ async fn test_focus_eval_rule_fired_to_observably_metrics() {
 #[tokio::test]
 async fn test_stashly_storage_to_observably_otel_span() {
     // Traces to: FR-OBS-E2E-001, Test 3/4
-    // Validates: phenotype-bus event → Observably OTEL span emission
+    // Validates: phenotype-event-bus event → Observably OTEL span emission
 
     INIT_TRACING.call_once(|| {
         let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
