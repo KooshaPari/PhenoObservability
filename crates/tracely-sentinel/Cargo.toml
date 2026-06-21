@@ -11,6 +11,9 @@ tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 phenotype-errors = { workspace = true }
+# L62 (error rate) observability adoption (v14 cycle-4 T7): surface
+# circuit-breaker + bulkhead errors as fleet-wide error metrics.
+pheno-otel = { workspace = true }
 
 [features]
 validation-extended = []
