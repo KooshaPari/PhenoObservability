@@ -33,7 +33,10 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest`n        with:`n          toolchain: stable`n      - uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
         with:
           workspaces: PhenoObservability -> target
       - run: cargo test --workspace --lib
@@ -68,7 +71,10 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest`n        with:`n          toolchain: stable`n      - run: cargo install cargo-tarpaulin
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: stable
+      - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
         working-directory: PhenoObservability
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
