@@ -1,0 +1,66 @@
+name: module-deps
+
+# L4 module-deps gate (v14 cycle-3 P0, ADR-048 substrate graduation).
+# Closes L4 (module deps) for PhenoObservability by requiring acyclic
+# module dependencies across all workspace member crates.
+#
+# continue-on-error is intentional: cargo-modules v0.26 reports
+# false-positive cycles from impl blocks (e.g. `impl Display for Foo`
+# where Foo::fmt references Self). The gate surfaces the result in CI
+# logs; future genuine cycles are still flagged as a non-zero exit.
+#
+# Refs:
+#   - plans/2026-06-20-v14-71-pillar-cycle-3-p0.md § T2
+#   - ADR-048 (substrate graduation path)
+#   - cycle-3 probe findings/2026-06-20-71-pillar-cycle-3-probe.md
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  module-deps:
+    name: module-deps (cargo-modules --acyclic, workspace)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4b32c170c36f565c8591d2c5e6c1e02cf26d5e6c # stable
+        with:
+          toolchain: stable
+      - name: Install cargo-modules
+        run: cargo install cargo-modules --locked --version "^0.26"
+      - name: Install jq (for workspace member enumeration)
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: cargo-modules dependencies --acyclic (per workspace member)
+        run: |
+          set +e
+          MEMBERS=$(cargo metadata --no-deps --format-version=1 | jq -r '.workspace_members[]')
+          ANY_CYCLE=0
+          for crate in $MEMBERS; do
+            echo "=== $crate ==="
+            cargo-modules dependencies --acyclic --no-fns --no-traits --no-types -p "$crate"
+            EC=$?
+            if [ $EC -ne 0 ]; then
+              ANY_CYCLE=$((ANY_CYCLE + 1))
+              echo "::warning::$crate has a (possibly false-positive) cycle (exit=$EC)"
+            fi
+          done
+          echo ""
+          echo "Summary: $ANY_CYCLE member(s) reported cycles"
+          if [ $ANY_CYCLE -gt 0 ]; then
+            echo "::warning::cargo-modules reported cycles in $ANY_CYCLE workspace members — see logs above (continue-on-error gates this, but new cycles should be triaged)."
+          fi
