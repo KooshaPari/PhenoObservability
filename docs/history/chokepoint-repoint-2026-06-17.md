@@ -35,7 +35,7 @@ is already the canonical home per [DOMAIN_ROLES](https://github.com/KooshaPari/p
    on `main`, then replace `vendor/` path deps with phenoShared git + `package`.
 2. **Delete `vendor/`** once git deps resolve cleanly.
 3. **CI secrets** — `.github/workflows/test.yml` still fetches private
-   `phenotype-bus` tarballs; unrelated to this repoint but blocks full CI green.
+   `phenotype-event-bus` tarballs; unrelated to this repoint but blocks full CI green.
 
 ## Verification
 
@@ -50,3 +50,4 @@ cargo check --workspace
 
 **Repointed** — no remaining HexaKit git deps for `phenotype-errors` /
 `phenotype-event-bus` / `phenotype-error-core` in active workspace manifests.
+

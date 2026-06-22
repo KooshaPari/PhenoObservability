@@ -2450,8 +2450,8 @@
       "version": "0.1.0"
     },
     {
-      "name": "phenotype-bus",
-      "purl": "pkg:cargo/phenotype-bus/0.1.0",
+      "name": "phenotype-event-bus",
+      "purl": "pkg:cargo/phenotype-event-bus/0.1.0",
       "scope": "required",
       "source": "unknown",
       "type": "library",

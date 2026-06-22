@@ -1,10 +1,10 @@
-# phenotype-bus + PhenoObservability E2E Integration Tests
+# phenotype-event-bus + PhenoObservability E2E Integration Tests
 
-**Reference:** `crates/phenotype-observably-tracing/tests/phenotype_bus_observability_e2e.rs`
+**Reference:** `crates/phenotype-observably-tracing/tests/phenotype_event_bus_observability_e2e.rs`
 
 ## Overview
 
-End-to-end integration tests validating real cross-collection event flow from phenotype-bus publication through PhenoObservably observability emission (structured logging, OTEL spans, and Prometheus metrics).
+End-to-end integration tests validating real cross-collection event flow from phenotype-event-bus publication through PhenoObservably observability emission (structured logging, OTEL spans, and Prometheus metrics).
 
 **Traces to:** FR-OBS-E2E-001
 
@@ -12,11 +12,11 @@ End-to-end integration tests validating real cross-collection event flow from ph
 
 ### Test 1: Sidekick Cache-Miss → Observably Structured Logging
 
-**File:** `phenotype_bus_observability_e2e.rs::test_sidekick_cache_miss_to_observably_logging`
+**File:** `phenotype_event_bus_observability_e2e.rs::test_sidekick_cache_miss_to_observably_logging`
 
-- **Scenario:** SidekickCacheMissEvent published on phenotype-bus → Observably handler subscribes → emits structured log
+- **Scenario:** SidekickCacheMissEvent published on phenotype-event-bus → Observably handler subscribes → emits structured log
 - **Validates:**
-  - phenotype-bus event serialization and deserialization
+  - phenotype-event-bus event serialization and deserialization
   - Handler subscription receives published events
   - Structured logging with contextual fields (cache_key, user_id, ttl_secs)
   - No external dependencies (in-process tracing-subscriber)
@@ -24,11 +24,11 @@ End-to-end integration tests validating real cross-collection event flow from ph
 
 ### Test 2: Focus-Eval Rule.Fired → Observably Metrics Counter
 
-**File:** `phenotype_bus_observability_e2e.rs::test_focus_eval_rule_fired_to_observably_metrics`
+**File:** `phenotype_event_bus_observability_e2e.rs::test_focus_eval_rule_fired_to_observably_metrics`
 
 - **Scenario:** FocusEvalRuleFiredEvent published → Observably handler → increments Prometheus metric counter
 - **Validates:**
-  - phenotype-bus event flow
+  - phenotype-event-bus event flow
   - MetricsRegistry global singleton receives metric increments
   - Metric text format output contains expected counters (rule_evaluations_total)
   - Histograms record duration values
@@ -36,11 +36,11 @@ End-to-end integration tests validating real cross-collection event flow from ph
 
 ### Test 3: Stashly Storage → Observably OTEL Span Emission
 
-**File:** `phenotype_bus_observability_e2e.rs::test_stashly_storage_to_observably_otel_span`
+**File:** `phenotype_event_bus_observability_e2e.rs::test_stashly_storage_to_observably_otel_span`
 
 - **Scenario:** StashlyStorageEvent published → Observably handler → creates and enters OTEL span context
 - **Validates:**
-  - phenotype-bus event handling
+  - phenotype-event-bus event handling
   - OTEL span creation with structured attributes (artifact_id, size_bytes, location)
   - Span context guard and information emission
   - tracing-subscriber JSON/pretty output captures span data
@@ -48,7 +48,7 @@ End-to-end integration tests validating real cross-collection event flow from ph
 
 ### Test 4: Full Cross-Collection Pipeline
 
-**File:** `phenotype_bus_observability_e2e.rs::test_end_to_end_cross_collection_pipeline`
+**File:** `phenotype_event_bus_observability_e2e.rs::test_end_to_end_cross_collection_pipeline`
 
 - **Scenario:** Three event buses (Sidekick, FocusEval, Stashly) all publish simultaneously → Observably handles all three → logs, metrics, spans emitted
 - **Validates:**
@@ -87,19 +87,19 @@ All tests include `Traces to: FR-OBS-E2E-001` comments linking to the functional
 
 ```bash
 cd /Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability
-cargo test --test phenotype_bus_observability_e2e -- --nocapture
+cargo test --test phenotype_event_bus_observability_e2e -- --nocapture
 ```
 
 For detailed trace output:
 ```bash
-RUST_LOG=debug cargo test --test phenotype_bus_observability_e2e -- --nocapture
+RUST_LOG=debug cargo test --test phenotype_event_bus_observability_e2e -- --nocapture
 ```
 
 ## Coverage
 
 | Scenario | Test | Status |
 |----------|------|--------|
-| phenotype-bus event publishing | All tests | ✓ |
+| phenotype-event-bus event publishing | All tests | ✓ |
 | Observably subscription + handler | All tests | ✓ |
 | Structured logging with context | Test 1 | ✓ |
 | Prometheus metric counter increment | Test 2 | ✓ |
@@ -115,3 +115,4 @@ RUST_LOG=debug cargo test --test phenotype_bus_observability_e2e -- --nocapture
 - Add tracing sampler validation (sample rate verification)
 - Verify Jaeger/Tempo span export format
 - Test metric cardinality explosion scenarios
+
