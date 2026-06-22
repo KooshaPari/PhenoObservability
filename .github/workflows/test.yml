@@ -36,7 +36,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
+      - uses: Swatinem/rust-cache@baf1a810e98b6a3001d0d7234864ed75a17c42fb # v-latest
         with:
           workspaces: PhenoObservability -> target
       - run: cargo test --workspace --lib
@@ -77,7 +77,7 @@ jobs:
       - run: cargo install cargo-tarpaulin
       - run: cargo tarpaulin --workspace --lib --out=Xml
         working-directory: PhenoObservability
-      - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
+      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         continue-on-error: true
         with:
           files: PhenoObservability/cobertura.xml
