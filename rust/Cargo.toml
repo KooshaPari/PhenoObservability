@@ -33,3 +33,5 @@ uuid = { version = "1", features = ["v4"] }
 prometheus = "0.13"
 phenotype-error-core = { git = "https://github.com/KooshaPari/phenotype-types", branch = "main" }
 sentry = "0.34"
+clap = { version = "4", features = ["derive"] }
+clap-ext = "0.1"
