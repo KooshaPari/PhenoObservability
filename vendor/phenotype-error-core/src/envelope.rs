@@ -20,7 +20,13 @@ pub struct ErrorEnvelope {
 impl ErrorEnvelope {
     /// Build a non-fatal envelope with no details.
     pub fn new(code: ErrorCode, message: impl Into<String>) -> Self {
-        Self { code, message: message.into(), details: None, fatal: false, retryable: None }
+        Self {
+            code,
+            message: message.into(),
+            details: None,
+            fatal: false,
+            retryable: None,
+        }
     }
 
     /// Add structured detail data.
@@ -76,7 +82,10 @@ mod tests {
 
     #[test]
     fn error_envelope_from_api_error() {
-        let api_err = ApiError::NotFound { resource: "project".into(), id: "42".into() };
+        let api_err = ApiError::NotFound {
+            resource: "project".into(),
+            id: "42".into(),
+        };
         let envelope = ErrorEnvelope::from(&api_err);
         assert_eq!(envelope.code, ErrorCode::NotFound);
         assert_eq!(envelope.retryable, Some(false));
@@ -96,7 +105,10 @@ mod tests {
 
     #[test]
     fn error_envelope_from_not_found_api_error_matches_fixture() {
-        let api_err = ApiError::NotFound { resource: "project".into(), id: "42".into() };
+        let api_err = ApiError::NotFound {
+            resource: "project".into(),
+            id: "42".into(),
+        };
         let envelope = ErrorEnvelope::from(&api_err);
         let fixture = include_str!("../../../contracts/errors/fixtures/not-found.json");
         let fixture_json: Value = serde_json::from_str(fixture).unwrap();

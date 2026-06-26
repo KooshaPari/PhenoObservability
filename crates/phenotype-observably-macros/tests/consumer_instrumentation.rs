@@ -97,11 +97,13 @@ pub mod http_client {
 #[test]
 fn consumer_http_client_uses_custom_span_name_and_skips_secret() {
     let recorder = SpanRecorder::default();
-    let _guard = tracing::subscriber::set_default(
-        tracing_subscriber::registry().with(recorder.clone()),
-    );
+    let _guard =
+        tracing::subscriber::set_default(tracing_subscriber::registry().with(recorder.clone()));
 
-    let result = futures_lite::future::block_on(http_client::fetch_url("https://api.example.com/v1", "REDACTED"));
+    let result = futures_lite::future::block_on(http_client::fetch_url(
+        "https://api.example.com/v1",
+        "REDACTED",
+    ));
     assert_eq!(result, "would fetch https://api.example.com/v1");
 
     let names = recorder.take();
@@ -132,9 +134,8 @@ pub mod queue_worker {
 #[test]
 fn consumer_queue_worker_uses_custom_level_and_name() {
     let recorder = SpanRecorder::default();
-    let _guard = tracing::subscriber::set_default(
-        tracing_subscriber::registry().with(recorder.clone()),
-    );
+    let _guard =
+        tracing::subscriber::set_default(tracing_subscriber::registry().with(recorder.clone()));
 
     let drained = futures_lite::future::block_on(queue_worker::drain());
     assert_eq!(drained, 7);
@@ -153,9 +154,8 @@ fn consumer_queue_worker_uses_custom_level_and_name() {
 #[test]
 fn consumer_spans_from_different_domains_are_distinct() {
     let recorder = SpanRecorder::default();
-    let _guard = tracing::subscriber::set_default(
-        tracing_subscriber::registry().with(recorder.clone()),
-    );
+    let _guard =
+        tracing::subscriber::set_default(tracing_subscriber::registry().with(recorder.clone()));
 
     let _ = futures_lite::future::block_on(repo_loader::load("a", "b", "c"));
     let _ = futures_lite::future::block_on(http_client::fetch_url("https://x", "k"));
@@ -163,7 +163,16 @@ fn consumer_spans_from_different_domains_are_distinct() {
 
     let names = recorder.take();
     // All three domain spans should have been entered at least once.
-    assert!(names.iter().any(|n| n == "load"), "missing 'load'; recorded={names:?}");
-    assert!(names.iter().any(|n| n == "http.fetch"), "missing 'http.fetch'; recorded={names:?}");
-    assert!(names.iter().any(|n| n == "queue.drain"), "missing 'queue.drain'; recorded={names:?}");
+    assert!(
+        names.iter().any(|n| n == "load"),
+        "missing 'load'; recorded={names:?}"
+    );
+    assert!(
+        names.iter().any(|n| n == "http.fetch"),
+        "missing 'http.fetch'; recorded={names:?}"
+    );
+    assert!(
+        names.iter().any(|n| n == "queue.drain"),
+        "missing 'queue.drain'; recorded={names:?}"
+    );
 }

@@ -63,8 +63,8 @@ mod tests {
         let _rate_limiter = TokenBucket::new(100, 10);
         let _circuit_breaker = CircuitBreaker::new(5, std::time::Duration::from_secs(60));
         let _bulkhead = Bulkhead::new(3, 10);
-        // All policies can be composed together
-        assert!(true);
+        // All policies construct without panic when composed.
+        assert_eq!(_circuit_breaker.state(), crate::circuit_breaker::CircuitState::Closed);
     }
 
     // Traces to: FR-OBS-042
@@ -106,9 +106,10 @@ mod tests {
     #[test]
     fn test_validate_log_levels() {
         // Validate error types work for config validation
-        let _ = Error::Validation("open".to_string());
-        let _ = Error::Validation("half-open".to_string());
-        assert!(true);
+        let open = Error::Validation("open".to_string());
+        let half_open = Error::Validation("half-open".to_string());
+        assert!(matches!(open, Error::Validation(_)));
+        assert!(matches!(half_open, Error::Validation(_)));
     }
 
     // Traces to: FR-OBS-046

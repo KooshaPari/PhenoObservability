@@ -7,7 +7,7 @@
 //! 3. Observably emits OTEL span and metric counter
 //! 4. OTEL stdout exporter captures emission (no external collector required)
 
-use phenotype_bus::{Bus, Event};
+use phenotype_event_bus::{Bus, Event};
 use phenotype_observably_tracing::MetricsRegistry;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -75,7 +75,7 @@ async fn test_sidekick_cache_miss_to_observably_logging() {
     // Validates: phenotype-event-bus event → Observably structured log emission
 
     INIT_TRACING.call_once(|| {
-        let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
+        phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
     });
 
     let bus = Bus::<SidekickCacheMissEvent>::new(10);
@@ -130,7 +130,7 @@ async fn test_focus_eval_rule_fired_to_observably_metrics() {
     // Validates: phenotype-event-bus event → Observably metric counter increment
 
     INIT_TRACING.call_once(|| {
-        let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
+        phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
     });
 
     let bus = Bus::<FocusEvalRuleFiredEvent>::new(10);
@@ -188,7 +188,7 @@ async fn test_stashly_storage_to_observably_otel_span() {
     // Validates: phenotype-event-bus event → Observably OTEL span emission
 
     INIT_TRACING.call_once(|| {
-        let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
+        phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
     });
 
     let bus = Bus::<StashlyStorageEvent>::new(10);
@@ -247,7 +247,7 @@ async fn test_end_to_end_cross_collection_pipeline() {
     // Validates: full pipeline with logging, metrics, and span emission
 
     INIT_TRACING.call_once(|| {
-        let _ = phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
+        phenotype_observably_tracing::init_tracing("test-e2e", Some("debug"));
     });
 
     // Three event buses representing three collections
@@ -353,4 +353,3 @@ async fn test_end_to_end_cross_collection_pipeline() {
     assert!(metrics_text.contains("rule_evaluations_total"));
     assert!(metrics_text.contains("audit_appends_total"));
 }
-

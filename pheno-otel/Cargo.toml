@@ -2,7 +2,7 @@
 name = "pheno-otel"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version.workspace = true
 license = "MIT OR Apache-2.0"
 description = "OpenTelemetry OTLP exporter substrate for the pheno-* fleet (ADR-037). Provides OtlpPort + Stdout/HttpExporter adapters; consumers depend on this for OTLP wire-format export of traces, metrics, and logs."
 repository = "https://github.com/KooshaPari/pheno-otel"

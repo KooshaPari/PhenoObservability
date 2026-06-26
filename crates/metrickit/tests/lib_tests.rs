@@ -1,12 +1,10 @@
 //! Unit tests for Metron domain and application layers.
 
+use metrickit::application::{MetricExporter, PrometheusExporter};
 use metrickit::domain::{
-    Counter, CounterValue, Gauge, GaugeValue,
-    Histogram, HistogramBuckets, HistogramValue,
-    MetricMetadata, MetricType, MetricError,
-    Registry,
+    Counter, CounterValue, Gauge, GaugeValue, Histogram, HistogramBuckets, HistogramValue,
+    MetricError, MetricMetadata, MetricType, Registry,
 };
-use metrickit::application::{PrometheusExporter, MetricExporter};
 
 // ============================================================================
 // CounterValue Tests
@@ -65,9 +63,11 @@ mod counter {
 
     #[test]
     fn with_description_sets_metadata() {
-        let c = Counter::new("http_requests")
-            .with_description("Total HTTP requests");
-        assert_eq!(c.metadata().description.as_deref(), Some("Total HTTP requests"));
+        let c = Counter::new("http_requests").with_description("Total HTTP requests");
+        assert_eq!(
+            c.metadata().description.as_deref(),
+            Some("Total HTTP requests")
+        );
     }
 
     #[test]
@@ -108,7 +108,9 @@ mod counter {
 
     #[test]
     fn metadata_returns_metadata() {
-        let c = Counter::new("meta_test").with_description("desc").with_unit("ms");
+        let c = Counter::new("meta_test")
+            .with_description("desc")
+            .with_unit("ms");
         let m = c.metadata();
         assert_eq!(m.name, "meta_test");
         assert_eq!(m.description.as_deref(), Some("desc"));
@@ -175,7 +177,10 @@ mod gauge {
     #[test]
     fn with_description_sets_description() {
         let g = Gauge::new("memory_bytes").with_description("RSS memory usage");
-        assert_eq!(g.metadata().description.as_deref(), Some("RSS memory usage"));
+        assert_eq!(
+            g.metadata().description.as_deref(),
+            Some("RSS memory usage")
+        );
     }
 
     #[test]
@@ -231,9 +236,9 @@ mod histogram_buckets {
     fn observe_increments_correct_bucket() {
         let mut hb = HistogramBuckets::new(vec![0.1, 0.5, 1.0]);
         hb.observe(0.05); // below first bucket
-        hb.observe(0.3);  // in first bucket (0.1)
-        hb.observe(0.7);  // in second bucket (0.5)
-        hb.observe(2.0);   // in overflow bucket (inf)
+        hb.observe(0.3); // in first bucket (0.1)
+        hb.observe(0.7); // in second bucket (0.5)
+        hb.observe(2.0); // in overflow bucket (inf)
         assert_eq!(hb.counts, vec![1, 1, 1, 1]);
     }
 
@@ -283,7 +288,10 @@ mod histogram {
     fn new_uses_default_buckets() {
         let h = Histogram::new("latency");
         let val = h.get();
-        assert_eq!(val.buckets.bounds, vec![0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]);
+        assert_eq!(
+            val.buckets.bounds,
+            vec![0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+        );
     }
 
     #[test]
@@ -296,7 +304,10 @@ mod histogram {
     #[test]
     fn with_description_sets_description() {
         let h = Histogram::new("req_duration").with_description("Request duration");
-        assert_eq!(h.metadata().description.as_deref(), Some("Request duration"));
+        assert_eq!(
+            h.metadata().description.as_deref(),
+            Some("Request duration")
+        );
     }
 
     #[test]
@@ -337,15 +348,13 @@ mod metric_metadata {
 
     #[test]
     fn with_description_returns_new_instance() {
-        let m = MetricMetadata::new("x", MetricType::Gauge)
-            .with_description("A gauge");
+        let m = MetricMetadata::new("x", MetricType::Gauge).with_description("A gauge");
         assert_eq!(m.description.as_deref(), Some("A gauge"));
     }
 
     #[test]
     fn with_unit_returns_new_instance() {
-        let m = MetricMetadata::new("y", MetricType::Counter)
-            .with_unit("bytes");
+        let m = MetricMetadata::new("y", MetricType::Counter).with_unit("bytes");
         assert_eq!(m.unit.as_deref(), Some("bytes"));
     }
 
@@ -583,7 +592,7 @@ mod prometheus_exporter {
     #[test]
     fn new_and_default_are_equivalent() {
         let e1 = PrometheusExporter::new();
-        let e2 = PrometheusExporter::default();
+        let e2 = PrometheusExporter;
         let reg = Registry::new();
         let o1 = e1.export(&reg).unwrap();
         let o2 = e2.export(&reg).unwrap();
@@ -668,10 +677,10 @@ mod edge_cases {
     #[test]
     fn serde_roundtrip_gauge_value() {
         use serde_json;
-        let gv = GaugeValue::new(-3.14);
+        let gv = GaugeValue::new(-2.5);
         let json = serde_json::to_string(&gv).unwrap();
         let restored: GaugeValue = serde_json::from_str(&json).unwrap();
-        assert_eq!(restored.value, -3.14);
+        assert_eq!(restored.value, -2.5);
     }
 
     #[test]

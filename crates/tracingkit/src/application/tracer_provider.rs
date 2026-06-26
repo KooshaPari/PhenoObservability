@@ -1,7 +1,6 @@
 //! Tracer Provider - Use Case
 
 use async_trait::async_trait;
-use phenotype_observably_macros::async_instrumented;
 use std::sync::Arc;
 
 use crate::domain::*;
@@ -68,7 +67,6 @@ impl TracerProvider {
         self.sampler.as_ref().as_ref()
     }
 
-    #[async_instrumented]
     pub async fn shutdown(&self) -> TraceResult<()> {
         if let Some(ref exporter) = self.exporter {
             exporter.shutdown().await?;

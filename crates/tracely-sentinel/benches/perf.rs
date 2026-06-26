@@ -1,6 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 fn bench_noop(c: &mut Criterion) {
-    c.bench_function("noop", |b| b.iter(|| black_box(100)));
+    c.bench_function("noop", |b| b.iter(|| std::hint::black_box(100)));
 }
 criterion_group!(benches, bench_noop);
 criterion_main!(benches);

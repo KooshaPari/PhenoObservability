@@ -97,11 +97,7 @@ impl Parse for MacroOptions {
 
 /// Map a level string (e.g. `"info"`) to the matching `tracing::Level` variant.
 fn level_tokens(level: &Option<String>) -> proc_macro2::TokenStream {
-    let variant = match level
-        .as_deref()
-        .map(str::to_ascii_lowercase)
-        .as_deref()
-    {
+    let variant = match level.as_deref().map(str::to_ascii_lowercase).as_deref() {
         Some("trace") => "TRACE",
         Some("debug") => "DEBUG",
         Some("info") => "INFO",
@@ -243,10 +239,7 @@ fn async_instrumented_impl(
 
     // Prepend `'fn_lifetime` to the existing generics (if any).
     let synthetic_lt: syn::GenericParam = syn::parse_quote! { 'fn_lifetime };
-    wrapped_sig
-        .generics
-        .params
-        .insert(0, synthetic_lt);
+    wrapped_sig.generics.params.insert(0, synthetic_lt);
 
     // Rewrite every reference input type from the anonymous lifetime
     // `&'_ T` to `&'fn_lifetime T`. Without this rewrite, the original
@@ -272,6 +265,7 @@ fn async_instrumented_impl(
         }
     };
 
+    let vis = &input.vis;
     let block = &input.block;
     let attrs = &input.attrs;
     let name_lit = LitStr::new(&name_str, input.sig.ident.span());
@@ -285,7 +279,7 @@ fn async_instrumented_impl(
     // E0700 "hidden type captures lifetime that does not appear in bounds".
     let enabled = quote! {
         #(#attrs)*
-        #wrapped_sig {
+        #vis #wrapped_sig {
             use ::tracing::Instrument as _;
             async move { #block }
                 .instrument(::tracing::span!(#level, #name_lit, #(#field_args),*))
@@ -329,8 +323,7 @@ mod tests {
     /// Unit test: option parser rejects unknown options.
     #[test]
     fn rejects_unknown_option() {
-        let res: syn::Result<MacroOptions> =
-            syn::parse2(quote::quote! { bogus = "x" });
+        let res: syn::Result<MacroOptions> = syn::parse2(quote::quote! { bogus = "x" });
         assert!(res.is_err(), "expected error for unknown option");
     }
 
