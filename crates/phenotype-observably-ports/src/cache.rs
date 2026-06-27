@@ -1,7 +1,7 @@
 //! `CachePort` — hexagonal port for a key/value cache (e.g. Dragonfly/Redis).
 
 use async_trait::async_trait;
-use phenotype_errors::RepositoryError;
+use phenotype_error_core::RepositoryError;
 
 /// Canonical error type for cache operations.
 pub type CacheResult<T> = Result<T, RepositoryError>;

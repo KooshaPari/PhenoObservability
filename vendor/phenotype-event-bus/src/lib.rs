@@ -131,6 +131,11 @@ impl Subscription {
 /// In-memory event bus implementation for testing
 pub mod memory;
 
+/// Lightweight typed pub/sub bus for tests and simple integrations.
+pub mod simple_bus;
+
+pub use simple_bus::{Bus, Event};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,5 +175,27 @@ mod tests {
 
         assert_eq!(envelope.correlation_id, Some("cor-123".to_string()));
         assert_eq!(envelope.causation_id, Some("cause-456".to_string()));
+    }
+
+    #[tokio::test]
+    async fn fr_simple_bus_001_publish_subscribe() {
+        use crate::simple_bus::{Bus, Event};
+
+        #[derive(Clone, Debug)]
+        struct Ping {
+            id: u32,
+        }
+
+        impl Event for Ping {
+            fn event_name(&self) -> &'static str {
+                "Ping"
+            }
+        }
+
+        let bus = Bus::<Ping>::new(8);
+        let mut rx = bus.subscribe();
+        bus.publish(Ping { id: 1 }).await.unwrap();
+        let received = rx.recv().await.unwrap();
+        assert_eq!(received.id, 1);
     }
 }

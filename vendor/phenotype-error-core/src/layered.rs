@@ -153,7 +153,9 @@ pub enum ConfigError {
 impl From<std::io::Error> for ConfigError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
-            std::io::ErrorKind::NotFound => Self::FileNotFound { path: PathBuf::from("<unknown>") },
+            std::io::ErrorKind::NotFound => Self::FileNotFound {
+                path: PathBuf::from("<unknown>"),
+            },
             _ => Self::Other(err.to_string()),
         }
     }
@@ -161,7 +163,10 @@ impl From<std::io::Error> for ConfigError {
 
 impl From<serde_json::Error> for ConfigError {
     fn from(err: serde_json::Error) -> Self {
-        Self::Parse { format: "json".into(), reason: err.to_string() }
+        Self::Parse {
+            format: "json".into(),
+            reason: err.to_string(),
+        }
     }
 }
 
@@ -192,7 +197,11 @@ mod tests {
         assert_eq!(ApiError::Unauthorized("x".into()).status_code(), 401);
         assert_eq!(ApiError::Forbidden("x".into()).status_code(), 403);
         assert_eq!(
-            ApiError::NotFound { resource: "user".into(), id: "1".into() }.status_code(),
+            ApiError::NotFound {
+                resource: "user".into(),
+                id: "1".into()
+            }
+            .status_code(),
             404
         );
         assert_eq!(ApiError::Conflict("x".into()).status_code(), 409);
@@ -203,10 +212,22 @@ mod tests {
 
     #[test]
     fn api_error_codes_are_stable_wire_codes() {
-        assert_eq!(ApiError::BadRequest("x".into()).error_code(), ErrorCode::InvalidArgument);
-        assert_eq!(ApiError::Unauthorized("x".into()).error_code(), ErrorCode::Unauthenticated);
-        assert_eq!(ApiError::Forbidden("x".into()).error_code(), ErrorCode::PermissionDenied);
-        assert_eq!(ApiError::RateLimited.error_code(), ErrorCode::ResourceExhausted);
+        assert_eq!(
+            ApiError::BadRequest("x".into()).error_code(),
+            ErrorCode::InvalidArgument
+        );
+        assert_eq!(
+            ApiError::Unauthorized("x".into()).error_code(),
+            ErrorCode::Unauthenticated
+        );
+        assert_eq!(
+            ApiError::Forbidden("x".into()).error_code(),
+            ErrorCode::PermissionDenied
+        );
+        assert_eq!(
+            ApiError::RateLimited.error_code(),
+            ErrorCode::ResourceExhausted
+        );
     }
 
     #[test]
@@ -225,8 +246,10 @@ mod tests {
 
     #[test]
     fn domain_error_state_transition() {
-        let err =
-            DomainError::InvalidStateTransition { from: "draft".into(), to: "published".into() };
+        let err = DomainError::InvalidStateTransition {
+            from: "draft".into(),
+            to: "published".into(),
+        };
         assert!(err.to_string().contains("draft"));
         assert!(err.to_string().contains("published"));
     }
@@ -240,7 +263,10 @@ mod tests {
 
     #[test]
     fn repository_error_sequence_gap() {
-        let err = RepositoryError::SequenceGap { expected: 5, actual: 7 };
+        let err = RepositoryError::SequenceGap {
+            expected: 5,
+            actual: 7,
+        };
         assert!(err.to_string().contains("expected 5"));
         assert!(err.to_string().contains("got 7"));
     }

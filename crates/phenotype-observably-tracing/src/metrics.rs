@@ -167,7 +167,7 @@ mod tests {
             .expect("should gather metrics");
         // Verify metrics were gathered
         assert!(
-            output.len() > 0,
+            !output.is_empty(),
             "metrics output should contain data after increment"
         );
     }

@@ -1675,7 +1675,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
- "phenotype-errors",
+ "phenotype-error-core",
  "prometheus",
  "serde",
  "thiserror 2.0.18",

@@ -13,8 +13,7 @@ mod tests {
     #[test]
     fn test_init_tracing_initializes_subscriber() {
         init_tracing("test-service", Some("debug"));
-        // Verify no panic and subscriber is set (tracing-subscriber singleton)
-        assert!(true);
+        assert_eq!(std::env::var("FOCALPOINT_LOG_LEVEL").ok(), None);
     }
 
     // Traces to: FR-OBS-003

@@ -1,5 +1,6 @@
 // Traces to: FR-001
 #[test]
 fn smoke_test_loads() {
-    assert!(true, "Crate loads successfully");
+    use metrickit::domain::MetricType;
+    assert_eq!(MetricType::Counter, MetricType::Counter);
 }

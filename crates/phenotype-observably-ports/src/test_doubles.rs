@@ -91,8 +91,8 @@ impl TimeSeriesPort for InMemoryTimeSeries {
 
     async fn flush(&mut self) -> TsResult<usize> {
         let count = self.pending_metrics.len() + self.pending_logs.len();
-        self.flushed_metrics.extend(self.pending_metrics.drain(..));
-        self.flushed_logs.extend(self.pending_logs.drain(..));
+        self.flushed_metrics.append(&mut self.pending_metrics);
+        self.flushed_logs.append(&mut self.pending_logs);
         Ok(count)
     }
 

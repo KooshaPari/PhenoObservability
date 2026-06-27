@@ -290,8 +290,6 @@ mod tests {
     fn test_circuit_breaker_config_validation() {
         let cb = CircuitBreaker::new(5, Duration::from_secs(60));
         assert_eq!(cb.state(), CircuitState::Closed);
-        // Valid configuration
-        assert!(true);
     }
 
     // Traces to: FR-OBS-023

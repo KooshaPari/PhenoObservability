@@ -1,7 +1,7 @@
 //! Metric Registry
 
-use std::collections::HashMap;
 use parking_lot::RwLock;
+use std::collections::HashMap;
 
 use super::{Counter, Gauge, Histogram, MetricError};
 
@@ -72,7 +72,11 @@ impl Registry {
     }
 
     /// Register a histogram
-    pub fn register_histogram(&self, name: &str, bounds: Vec<f64>) -> Result<Histogram, MetricError> {
+    pub fn register_histogram(
+        &self,
+        name: &str,
+        bounds: Vec<f64>,
+    ) -> Result<Histogram, MetricError> {
         let histogram = Histogram::with_buckets(name, bounds);
         let mut histograms = self.histograms.write();
         if histograms.contains_key(name) {

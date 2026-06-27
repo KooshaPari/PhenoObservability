@@ -137,7 +137,7 @@ async fn instrumented_fn_with_custom_level() {
     recorder.assert_contains("warn_level_span");
     let seen = levels.levels.lock().unwrap().clone();
     assert!(
-        seen.iter().any(|l| *l == tracing::Level::WARN),
+        seen.contains(&tracing::Level::WARN),
         "expected WARN level span, got {:?}",
         seen
     );
@@ -240,9 +240,6 @@ struct LevelRecorder {
 
 impl<S: Subscriber> Layer<S> for LevelRecorder {
     fn on_new_span(&self, attrs: &Attributes<'_>, _id: &Id, _ctx: Context<'_, S>) {
-        self.levels
-            .lock()
-            .unwrap()
-            .push(*attrs.metadata().level());
+        self.levels.lock().unwrap().push(*attrs.metadata().level());
     }
 }

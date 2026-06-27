@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn test_token_bucket_initial_full() {
         let mut bucket = TokenBucket::new(10, 5);
-        assert_eq!(bucket.try_acquire(), true);
+        assert!(bucket.try_acquire());
         assert_eq!(bucket.remaining(), 9);
     }
 

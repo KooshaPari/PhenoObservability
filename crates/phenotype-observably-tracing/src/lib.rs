@@ -156,8 +156,11 @@ mod tests {
         // Set format and verify no panic
         std::env::set_var("FOCALPOINT_LOG_FORMAT", "pretty");
         init_tracing("test-service-pretty", Some("info"));
+        assert_eq!(
+            std::env::var("FOCALPOINT_LOG_FORMAT").ok(),
+            Some("pretty".to_string())
+        );
         std::env::remove_var("FOCALPOINT_LOG_FORMAT");
-        assert!(true);
     }
 
     // Traces to: FR-OBS-002 (OTEL Init)

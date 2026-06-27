@@ -26,7 +26,7 @@ mod tests {
     #[test]
     fn test_result_type_ok() {
         let r: Result<i32> = Ok(42);
-        assert_eq!(r.unwrap(), 42);
+        assert_eq!(r.ok(), Some(42));
     }
 
     #[test]
