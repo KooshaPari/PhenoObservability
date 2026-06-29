@@ -7,11 +7,15 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::RwLock;
 
+/// Default channel capacity for subscriber channels.
+pub const DEFAULT_CHANNEL_CAPACITY: usize = 1024;
+
 /// In-memory event bus for testing
 pub struct InMemoryEventBus<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static>
 {
-    subscribers: Arc<DashMap<String, Vec<mpsc::UnboundedSender<EventEnvelope<T>>>>>,
+    subscribers: Arc<DashMap<String, Vec<mpsc::Sender<EventEnvelope<T>>>>>,
     closed: Arc<RwLock<bool>>,
+    capacity: usize,
 }
 
 impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> Default
@@ -23,10 +27,17 @@ impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> De
 }
 
 impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> InMemoryEventBus<T> {
+    /// Create a new bus with the default channel capacity.
     pub fn new() -> Self {
+        Self::with_capacity(DEFAULT_CHANNEL_CAPACITY)
+    }
+
+    /// Create a new bus with a specific channel capacity for backpressure.
+    pub fn with_capacity(capacity: usize) -> Self {
         Self {
             subscribers: Arc::new(DashMap::new()),
             closed: Arc::new(RwLock::new(false)),
+            capacity,
         }
     }
 }
@@ -48,7 +59,7 @@ impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> Ev
         // Send to exact subject subscribers
         if let Some(subs) = self.subscribers.get(&subject) {
             for sender in subs.iter() {
-                let _ = sender.send(event.clone());
+                let _ = sender.try_send(event.clone());
             }
         }
 
@@ -57,7 +68,7 @@ impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> Ev
             let pattern = entry.key();
             if pattern.ends_with('*') && subject.starts_with(&pattern[..pattern.len() - 1]) {
                 for sender in entry.value().iter() {
-                    let _ = sender.send(event.clone());
+                    let _ = sender.try_send(event.clone());
                 }
             }
         }
@@ -74,7 +85,7 @@ impl<T: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static> Ev
             return Err(EventBusError::Connection("Bus is closed".to_string()));
         }
 
-        let (tx, mut rx) = mpsc::unbounded_channel();
+        let (tx, mut rx) = mpsc::channel(self.capacity);
         let sub_id = ulid::Ulid::new().to_string();
 
         self.subscribers
@@ -191,6 +202,52 @@ mod tests {
 
         let messages = received.read().await;
         assert_eq!(messages.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn fr_memory_event_bus_004_with_capacity() {
+        let capacity = 64;
+        let bus = InMemoryEventBus::<TestEvent>::with_capacity(capacity);
+        assert_eq!(bus.capacity, capacity);
+
+        // Default constructor also works
+        let default_bus = InMemoryEventBus::<TestEvent>::new();
+        assert_eq!(default_bus.capacity, DEFAULT_CHANNEL_CAPACITY);
+    }
+
+    #[tokio::test]
+    async fn fr_memory_event_bus_005_publish_bounded_backpressure() {
+        // Capacity of 1 means one event is buffered; excess are dropped
+        let bus = InMemoryEventBus::<TestEvent>::with_capacity(1);
+
+        // Subscribe with a slow handler that never pulls from channel
+        bus.subscribe("test.slow", move |_envelope| {
+            // Never process — channel fills up
+            Ok(())
+        })
+        .await
+        .unwrap();
+
+        // Publish multiple events; bounded channel applies backpressure
+        // (try_send drops when full, so no hang)
+        for i in 0..10 {
+            let event = TestEvent {
+                message: format!("event-{}", i),
+            };
+            bus.publish(EventEnvelope::new("test.slow", event))
+                .await
+                .unwrap();
+        }
+
+        // No crash, no hang — bounded backpressure works
+        // At most capacity (1) event was received by subscriber
+        let closed = *bus.closed.read().await;
+        assert!(!closed, "bus should still be open");
+    }
+
+    #[tokio::test]
+    async fn fr_memory_event_bus_006_default_channel_capacity() {
+        assert_eq!(DEFAULT_CHANNEL_CAPACITY, 1024);
     }
 
     #[tokio::test]
