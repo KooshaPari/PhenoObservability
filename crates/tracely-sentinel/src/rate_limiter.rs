@@ -2,8 +2,20 @@
 //!
 //! Rate limiting implementations: Token Bucket and Leaky Bucket algorithms.
 
-pub use phenotype_errors::DomainError as RateLimiterError;
 use std::time::Instant;
+use thiserror::Error;
+
+/// Rate limiter error types.
+#[derive(Debug, Error)]
+pub enum RateLimiterError {
+    /// All permits are currently exhausted.
+    #[error("Rate limiter exhausted")]
+    Exhausted,
+
+    /// The rate limiter configuration is invalid.
+    #[error("Invalid configuration: {0}")]
+    InvalidConfig(String),
+}
 
 /// Trait for rate limiters
 pub trait RateLimiter {

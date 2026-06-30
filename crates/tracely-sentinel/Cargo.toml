@@ -10,7 +10,7 @@ repository = "https://github.com/KooshaPari/sentinel"
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-phenotype-errors = { workspace = true }
+thiserror = { workspace = true }
 
 [features]
 validation-extended = []
