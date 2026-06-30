@@ -1725,9 +1725,9 @@ name = "phenotype-sentinel"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "phenotype-errors",
  "serde",
  "serde_json",
+ "thiserror 2.0.18",
  "tokio",
  "tokio-test",
 ]

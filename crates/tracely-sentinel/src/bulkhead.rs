@@ -2,10 +2,22 @@
 //!
 //! Bulkhead isolation pattern implementation.
 
-pub use phenotype_errors::DomainError as BulkheadError;
 use std::collections::HashMap;
 use std::sync::Arc;
+use thiserror::Error;
 use tokio::sync::RwLock;
+
+/// Bulkhead error types.
+#[derive(Debug, Error)]
+pub enum BulkheadError {
+    /// A specific partition has reached its capacity.
+    #[error("Partition {0} exhausted")]
+    PartitionExhausted(usize),
+
+    /// The total capacity across all partitions is exhausted.
+    #[error("Total capacity exhausted")]
+    TotalExhausted,
+}
 
 /// Bulkhead for partition-based isolation
 ///
@@ -47,12 +59,12 @@ impl Bulkhead {
         let current = partitions.get(&partition).copied().unwrap_or(0);
 
         if current >= self.partition_capacity {
-            return Err(BulkheadError::Validation(format!("Partition {} exhausted", partition)));
+            return Err(BulkheadError::PartitionExhausted(partition));
         }
 
         let mut total = self.current_total.write().await;
         if *total >= self.total_capacity {
-            return Err(BulkheadError::Validation("Total capacity exhausted".to_string()));
+            return Err(BulkheadError::TotalExhausted);
         }
 
         partitions.insert(partition, current + 1);
@@ -96,8 +108,7 @@ impl Bulkhead {
     }
 }
 
-// BulkheadError is now an alias to DomainError from phenotype_errors
-// which is defined above
+// The BulkheadError enum is defined above with thiserror derive.
 
 /// Partition guard that automatically releases on drop
 pub struct PartitionGuard {

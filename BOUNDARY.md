@@ -26,6 +26,13 @@
 - Test mocks / compliance scanner → `TestingKit` (misplaced copies to decompose)
 - Security aggregation → `Authvault`
 - Cross-cutting errors/event-bus → `phenoShared` (not vendored long-term)
+- Token accounting / LLM FinOps → `Tokn` (complementary — not observability)
+
+## Relationship to consolidation plan
+
+This repo is the **canonical SSOT** per the [observability consolidation plan](../phenotype-org-audits/consolidation/observability-consolidation-plan.md)
+(merged #71). `tracely-core` and `tracely-sentinel` are the authoritative copies;
+the standalone `KooshaPari/Tracely` repo will be archived.
 
 ## Consumer guidance
 

@@ -1,5 +1,11 @@
 //! `tracely` — Unified observability for the Phenotype ecosystem.
 //!
+//! ## SSOT
+//!
+//! This crate is the **canonical Single Source of Truth** for `tracely-core`.
+//! The standalone `KooshaPari/Tracely` repository contains a copy of this crate
+//! that will be archived — do not make changes there. Update here instead.
+//!
 //! Absorbs:
 //! - `helix-logging` (structured logging with correlation IDs)
 //! - `helix-tracing` (distributed tracing with TraceContext and span management)

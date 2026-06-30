@@ -2,6 +2,12 @@
 //!
 //! Rust resilience library providing rate limiting, circuit breaking, and bulkhead isolation.
 //!
+//! ## SSOT
+//!
+//! This crate is the **canonical Single Source of Truth** for `phenotype-sentinel`.
+//! The standalone `KooshaPari/Tracely` repository contains a copy of this crate
+//! that will be archived — do not make changes there. Update here instead.
+//!
 //! ## Features
 //!
 //! - **Rate Limiting**: Token bucket and leaky bucket algorithms
@@ -26,11 +32,29 @@ pub mod config;
 pub mod rate_limiter;
 pub mod validation;
 
-pub use bulkhead::{Bulkhead, PartitionGuard};
-pub use circuit_breaker::{CircuitBreaker, CircuitState};
+pub use bulkhead::{Bulkhead, BulkheadError, PartitionGuard};
+pub use circuit_breaker::{CircuitBreaker, CircuitBreakerError, CircuitState};
 pub use config::{BulkheadConfig, CircuitBreakerConfig, RateLimiterConfig, SentinelConfig};
-pub use phenotype_errors::DomainError as Error;
-pub use rate_limiter::{LeakyBucket, RateLimiter, TokenBucket};
+pub use rate_limiter::{LeakyBucket, RateLimiter, RateLimiterError, TokenBucket};
+
+use thiserror::Error;
+
+/// Unified error type for phenotype-sentinel operations.
+///
+/// Wraps the per-component error types into a single enum
+/// so callers can use `phenotype_sentinel::Error` without
+/// importing each sub-error individually.
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("Rate limiter error: {0}")]
+    RateLimiter(#[from] RateLimiterError),
+
+    #[error("Circuit breaker error: {0}")]
+    CircuitBreaker(#[from] CircuitBreakerError),
+
+    #[error("Bulkhead error: {0}")]
+    Bulkhead(#[from] BulkheadError),
+}
 
 #[cfg(test)]
 mod tests {
@@ -98,18 +122,19 @@ mod tests {
     // Traces to: FR-OBS-044
     #[test]
     fn test_validate_invalid_level() {
-        // Test that validation of levels works by checking error types
-        let _ = Error::Validation("test".to_string());
+        // Test that error types work for config validation
+        let err = Error::CircuitBreaker(CircuitBreakerError::Open);
+        assert!(matches!(err, Error::CircuitBreaker(_)));
     }
 
     // Traces to: FR-OBS-045
     #[test]
     fn test_validate_log_levels() {
         // Validate error types work for config validation
-        let open = Error::Validation("open".to_string());
-        let half_open = Error::Validation("half-open".to_string());
-        assert!(matches!(open, Error::Validation(_)));
-        assert!(matches!(half_open, Error::Validation(_)));
+        let open = Error::CircuitBreaker(CircuitBreakerError::Open);
+        let half_open = Error::CircuitBreaker(CircuitBreakerError::HalfOpen);
+        assert!(matches!(open, Error::CircuitBreaker(_)));
+        assert!(matches!(half_open, Error::CircuitBreaker(_)));
     }
 
     // Traces to: FR-OBS-046
