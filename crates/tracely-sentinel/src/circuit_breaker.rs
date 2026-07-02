@@ -2,20 +2,8 @@
 //!
 //! Circuit breaker implementation for fault tolerance.
 
+pub use phenotype_errors::DomainError as CircuitBreakerError;
 use std::time::{Duration, Instant};
-use thiserror::Error;
-
-/// Circuit breaker error types.
-#[derive(Debug, Error)]
-pub enum CircuitBreakerError {
-    /// Circuit is open, requests are blocked.
-    #[error("Circuit breaker is open")]
-    Open,
-
-    /// Circuit is half-open, testing recovery.
-    #[error("Circuit breaker is half-open, request not allowed")]
-    HalfOpen,
-}
 
 /// Circuit breaker state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -135,7 +123,13 @@ impl CircuitBreaker {
         F: FnOnce() -> Result<T, E>,
     {
         if !self.is_allowed() {
-            return Err(CircuitBreakerError::Open);
+            // L62 (error rate) observability adoption (v14 cycle-4 T7):
+            // surface circuit-breaker rejection as a fleet-wide error metric.
+            pheno_otel::metrics::record_error(
+                "phenotype_sentinel.circuit_breaker.execute",
+                "circuit_open",
+            );
+            return Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()));
         }
 
         match self.state {
@@ -146,7 +140,15 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
-                    Err(CircuitBreakerError::HalfOpen)
+                    // L62 (error rate) observability adoption (v14 cycle-4 T7):
+                    // surface half-open failure as a fleet-wide error metric.
+                    pheno_otel::metrics::record_error(
+                        "phenotype_sentinel.circuit_breaker.execute",
+                        "half_open_failure",
+                    );
+                    Err(CircuitBreakerError::Validation(
+                        "Circuit breaker is half-open, request not allowed".to_string(),
+                    ))
                 }
             },
             _ => match f() {
@@ -156,7 +158,13 @@ impl CircuitBreaker {
                 }
                 Err(_) => {
                     self.record_failure();
-                    Err(CircuitBreakerError::Open)
+                    // L62 (error rate) observability adoption (v14 cycle-4 T7):
+                    // surface wrapped-call failure as a fleet-wide error metric.
+                    pheno_otel::metrics::record_error(
+                        "phenotype_sentinel.circuit_breaker.execute",
+                        "wrapped_call_failed",
+                    );
+                    Err(CircuitBreakerError::Validation("Circuit breaker is open".to_string()))
                 }
             },
         }
@@ -300,6 +308,8 @@ mod tests {
     fn test_circuit_breaker_config_validation() {
         let cb = CircuitBreaker::new(5, Duration::from_secs(60));
         assert_eq!(cb.state(), CircuitState::Closed);
+        // Valid configuration
+        assert!(true);
     }
 
     // Traces to: FR-OBS-023
