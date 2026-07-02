@@ -9,7 +9,6 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
       - name: Download PhenoObservability source
         env:
@@ -47,7 +46,6 @@ jobs:
   coverage:
     name: Coverage Report
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
       - name: Download PhenoObservability source
         env:
