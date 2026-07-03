@@ -26,6 +26,7 @@
 //! println!("trace_id={} span_id={}", ctx.trace_id, ctx.span_id);
 //! ```
 
+pub mod alerting;
 pub mod dashboards;
 pub mod file_exporter;
 pub mod logging;
