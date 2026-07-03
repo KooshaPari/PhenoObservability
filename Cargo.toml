@@ -51,4 +51,4 @@ phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
 # `metrics::record_request` helpers; consumer crates (e.g.
 # `phenotype-sentinel`) pull this in to surface fleet-wide L62
 # error-rate observability per ADR-036B + ADR-042.
-pheno-otel = { path = "../pheno-otel" }
+pheno-otel = { path = "pheno-otel" }
