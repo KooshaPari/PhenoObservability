@@ -26,9 +26,11 @@
 //! println!("trace_id={} span_id={}", ctx.trace_id, ctx.span_id);
 //! ```
 
+pub mod file_exporter;
 pub mod logging;
 pub mod tracing;
 
 // Re-export the most commonly used items at crate root
+pub use file_exporter::{FileExporter, SpanData};
 pub use logging::{LogContext, LoggerConfig};
 pub use tracing::{TraceContext, TracingConfig};
