@@ -1,4 +1,4 @@
-//! `tracely` — Unified observability for the Phenotype ecosystem.
+//! `tracely-core` — Unified observability for the Phenotype ecosystem.
 //!
 //! ## SSOT
 //!
@@ -13,7 +13,7 @@
 //! # Quick start
 //!
 //! ```rust
-//! use tracely::{logging, tracing as trc};
+//! use tracely_core::{logging, tracing as trc};
 //!
 //! // Initialize structured logging
 //! logging::init(logging::LoggerConfig::default());

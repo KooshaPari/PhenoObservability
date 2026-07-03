@@ -1,10 +1,10 @@
 [package]
-name = "tracely"
+name = "tracely-core"
 version = "0.2.0"
 edition = "2021"
 description = "Unified observability: tracing, metrics, logging — absorbs helix-logging and helix-tracing"
 license = "MIT"
-repository = "https://github.com/KooshaPari/tracely"
+repository = "https://github.com/KooshaPari/PhenoObservability"
 keywords = ["tracing", "logging", "observability", "metrics", "opentelemetry"]
 
 [dependencies]
