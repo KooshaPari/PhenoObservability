@@ -54,7 +54,7 @@ pub fn init(config: LoggerConfig) {
 /// # Example
 ///
 /// ```rust
-/// use tracely::log_json;
+/// use tracely_core::log_json;
 /// use log::Level;
 ///
 /// log_json!(Level::Info, "event" = "request", "status" = 200u16);
