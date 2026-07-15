@@ -3,6 +3,7 @@
 //! Command-line tool for unified project health scanning
 
 use clap::{Parser, Subcommand, ValueEnum};
+use clap_ext::prelude::*;
 use phenotype_health_cli::{generate_json_report, generate_table_report, UnifiedHealthScanner};
 use std::path::PathBuf;
 use tracing::info;
@@ -12,6 +13,10 @@ use tracing::info;
 #[command(about = "Unified project health scanner for the Phenotype monorepo")]
 #[command(version)]
 struct Cli {
+    /// Shared `-v/-q` verbosity flags (clap-ext `Verbosity`)
+    #[command(flatten)]
+    verbosity: Verbosity,
+
     /// Path to scan (defaults to current directory)
     #[arg(short, long, value_name = "PATH")]
     path: Option<PathBuf>,
@@ -23,10 +28,6 @@ struct Cli {
     /// Subcommand to run
     #[command(subcommand)]
     command: Option<Commands>,
-
-    /// Increase verbosity
-    #[arg(short, long, action = clap::ArgAction::Count)]
-    verbose: u8,
 }
 
 #[derive(Subcommand)]
@@ -86,17 +87,8 @@ enum OutputFormat {
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    // Initialize tracing
-    let filter = match cli.verbose {
-        0 => "warn",
-        1 => "info",
-        2 => "debug",
-        _ => "trace",
-    };
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(false)
-        .init();
+    // Initialize tracing via clap-ext (handles RUST_LOG + -v/-q mapping).
+    setup_tracing(cli.verbosity.to_filter());
 
     // Determine the path to scan
     let scan_path = cli.path.unwrap_or_else(|| std::env::current_dir().unwrap());
