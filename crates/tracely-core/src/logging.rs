@@ -6,7 +6,6 @@
 pub use log::{debug, error, info, trace, warn, Level, LevelFilter, Metadata, Record};
 
 /// Configuration for the logger.
-#[derive(Debug, Clone)]
 pub struct LoggerConfig {
     /// Minimum log level to capture.
     pub level: Level,
@@ -18,14 +17,13 @@ pub struct LoggerConfig {
     pub correlation_id: Option<String>,
 }
 
-impl Default for LoggerConfig {
-    fn default() -> Self {
-        Self {
-            level: Level::Info,
-            include_timestamps: true,
-            include_location: true,
-            correlation_id: None,
-        }
+/// Default logger configuration.
+pub fn default_logger_config() -> LoggerConfig {
+    LoggerConfig {
+        level: Level::Info,
+        include_timestamps: true,
+        include_location: true,
+        correlation_id: None,
     }
 }
 
@@ -76,12 +74,10 @@ pub struct LogContext {
     pub correlation_id: String,
 }
 
-impl LogContext {
-    /// Create a new context. If `id` is `None`, a UUID v4 is generated.
-    pub fn new(id: Option<String>) -> Self {
-        Self {
-            correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
-        }
+/// Create a new context. If `id` is `None`, a UUID v4 is generated.
+pub fn new_log_context(id: Option<String>) -> LogContext {
+    LogContext {
+        correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
     }
 }
 
@@ -91,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_logger_config_default() {
-        let config = LoggerConfig::default();
+        let config = default_logger_config();
         assert_eq!(config.level, Level::Info);
         assert!(config.include_timestamps);
         assert!(config.include_location);
@@ -100,20 +96,20 @@ mod tests {
 
     #[test]
     fn test_log_context_auto_generation() {
-        let ctx = LogContext::new(None);
+        let ctx = new_log_context(None);
         assert!(!ctx.correlation_id.is_empty());
     }
 
     #[test]
     fn test_log_context_with_provided_id() {
-        let ctx = LogContext::new(Some("test-123".to_string()));
+        let ctx = new_log_context(Some("test-123".to_string()));
         assert_eq!(ctx.correlation_id, "test-123");
     }
 
     #[test]
     fn test_log_context_ids_are_unique() {
-        let a = LogContext::new(None);
-        let b = LogContext::new(None);
+        let a = new_log_context(None);
+        let b = new_log_context(None);
         assert_ne!(a.correlation_id, b.correlation_id);
     }
 }

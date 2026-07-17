@@ -17,7 +17,7 @@ prometheus-adapter = ["dep:prometheus"]
 [dependencies]
 async-trait = { workspace = true }
 chrono = { workspace = true }
-phenotype-errors = { workspace = true }
+phenotype-error-core = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 prometheus = { version = "0.14", optional = true }

@@ -2,55 +2,56 @@
 //!
 //! Useful for local dev, CI smoke tests, and dogfooding. **Not** for prod.
 
-use super::ExporterConfig;
-use crate::{ExportHandle, OtlpError, OtlpPort};
+use super::{new_exporter_config, ExporterConfig};
+use crate::{ExportHandle, OtlpError};
 
 /// OTLP exporter that writes payloads to stderr.
-#[derive(Debug)]
 pub struct StdoutExporter {
-    config: ExporterConfig,
+    pub(crate) config: ExporterConfig,
 }
 
-impl StdoutExporter {
-    /// Build a new `StdoutExporter` with the given config.
-    pub fn new(config: ExporterConfig) -> Self {
-        Self { config }
-    }
+/// Build a new `StdoutExporter` with the given config.
+pub fn new_stdout_exporter(config: ExporterConfig) -> StdoutExporter {
+    StdoutExporter { config }
 }
 
-impl OtlpPort for StdoutExporter {
-    fn name(&self) -> &str {
-        "stdout"
-    }
+/// Stable exporter name.
+pub fn stdout_exporter_name(_exporter: &StdoutExporter) -> &'static str {
+    "stdout"
+}
 
-    fn health(&self) -> Result<(), OtlpError> {
-        if self.config.endpoint.is_empty() {
-            Err(OtlpError::NotConfigured("endpoint is empty".to_string()))
-        } else {
-            Ok(())
-        }
-    }
-
-    fn export(&self, payload: &[u8]) -> Result<ExportHandle, OtlpError> {
-        if payload.is_empty() {
-            return Err(OtlpError::SerializeFailed("empty payload".to_string()));
-        }
-        eprintln!(
-            "[pheno-otel/stdout] endpoint={} service={} bytes={}",
-            self.config.endpoint,
-            self.config.service_name,
-            payload.len()
-        );
-        Ok(ExportHandle {
-            endpoint: self.config.endpoint.clone(),
-            service_name: self.config.service_name.clone(),
-        })
-    }
-
-    fn flush(&self) -> Result<(), OtlpError> {
-        // stderr is unbuffered; nothing to flush.
+/// Lightweight liveness check.
+pub fn stdout_exporter_health(exporter: &StdoutExporter) -> Result<(), OtlpError> {
+    if exporter.config.endpoint.is_empty() {
+        Err(OtlpError::NotConfigured("endpoint is empty".to_string()))
+    } else {
         Ok(())
     }
+}
+
+/// Export a single OTLP/JSON payload to stderr.
+pub fn stdout_exporter_export(
+    exporter: &StdoutExporter,
+    payload: &[u8],
+) -> Result<ExportHandle, OtlpError> {
+    if payload.is_empty() {
+        return Err(OtlpError::SerializeFailed("empty payload".to_string()));
+    }
+    eprintln!(
+        "[pheno-otel/stdout] endpoint={} service={} bytes={}",
+        exporter.config.endpoint,
+        exporter.config.service_name,
+        payload.len()
+    );
+    Ok(ExportHandle {
+        endpoint: exporter.config.endpoint.clone(),
+        service_name: exporter.config.service_name.clone(),
+    })
+}
+
+/// Flush any in-flight batched exports (no-op for stderr).
+pub fn stdout_exporter_flush(_exporter: &StdoutExporter) -> Result<(), OtlpError> {
+    Ok(())
 }
 
 #[cfg(test)]
@@ -59,42 +60,45 @@ mod tests {
 
     #[test]
     fn stdout_exporter_name() {
-        let exp = StdoutExporter::new(ExporterConfig::new("http://localhost:4318", "test"));
-        assert_eq!(exp.name(), "stdout");
+        let exp = new_stdout_exporter(new_exporter_config("http://localhost:4318", "test"));
+        assert_eq!(stdout_exporter_name(&exp), "stdout");
     }
 
     #[test]
     fn stdout_exporter_health() {
-        let exp = StdoutExporter::new(ExporterConfig::new("http://localhost:4318", "test"));
-        assert!(exp.health().is_ok());
+        let exp = new_stdout_exporter(new_exporter_config("http://localhost:4318", "test"));
+        assert!(stdout_exporter_health(&exp).is_ok());
     }
 
     #[test]
     fn stdout_exporter_health_fails_with_empty_endpoint() {
-        let exp = StdoutExporter::new(ExporterConfig::new("", "test"));
-        assert!(matches!(exp.health(), Err(OtlpError::NotConfigured(_))));
+        let exp = new_stdout_exporter(new_exporter_config("", "test"));
+        assert!(matches!(
+            stdout_exporter_health(&exp),
+            Err(OtlpError::NotConfigured(_))
+        ));
     }
 
     #[test]
     fn stdout_exporter_export_returns_handle() {
-        let exp = StdoutExporter::new(ExporterConfig::new("http://localhost:4318", "test"));
-        let handle = exp.export(br#"{"resourceSpans":[]}"#).unwrap();
+        let exp = new_stdout_exporter(new_exporter_config("http://localhost:4318", "test"));
+        let handle = stdout_exporter_export(&exp, br#"{"resourceSpans":[]}"#).unwrap();
         assert_eq!(handle.endpoint, "http://localhost:4318");
         assert_eq!(handle.service_name, "test");
     }
 
     #[test]
     fn stdout_exporter_export_empty_fails() {
-        let exp = StdoutExporter::new(ExporterConfig::new("http://localhost:4318", "test"));
+        let exp = new_stdout_exporter(new_exporter_config("http://localhost:4318", "test"));
         assert!(matches!(
-            exp.export(b""),
+            stdout_exporter_export(&exp, b""),
             Err(OtlpError::SerializeFailed(_))
         ));
     }
 
     #[test]
     fn stdout_exporter_flush() {
-        let exp = StdoutExporter::new(ExporterConfig::new("http://localhost:4318", "test"));
-        assert!(exp.flush().is_ok());
+        let exp = new_stdout_exporter(new_exporter_config("http://localhost:4318", "test"));
+        assert!(stdout_exporter_flush(&exp).is_ok());
     }
 }

@@ -10,29 +10,9 @@
 
 pub use log::{debug, error, info, trace, warn, Level, LevelFilter, Metadata, Record};
 
-/// Configuration for the logger
-#[derive(Debug, Clone)]
-pub struct LoggerConfig {
-    /// Minimum log level to capture
-    pub level: Level,
-    /// Include timestamps in logs
-    pub include_timestamps: bool,
-    /// Include file and line information
-    pub include_location: bool,
-    /// Correlation ID for tracing requests
-    pub correlation_id: Option<String>,
-}
+mod logger_config;
 
-impl Default for LoggerConfig {
-    fn default() -> Self {
-        Self {
-            level: Level::Info,
-            include_timestamps: true,
-            include_location: true,
-            correlation_id: None,
-        }
-    }
-}
+pub use logger_config::{default_logger_config, new_log_context, LogContext, LoggerConfig};
 
 /// Initialize the logger with the given configuration
 pub fn init(config: LoggerConfig) {
@@ -64,19 +44,6 @@ macro_rules! log_json {
     };
 }
 
-/// Context wrapper for correlation ID tracking
-pub struct LogContext {
-    pub correlation_id: String,
-}
-
-impl LogContext {
-    pub fn new(id: Option<String>) -> Self {
-        Self {
-            correlation_id: id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -84,7 +51,7 @@ mod tests {
     // Traces to: FR-OBS-009
     #[test]
     fn test_logger_config_defaults() {
-        let config = LoggerConfig::default();
+        let config = default_logger_config();
         assert_eq!(config.level, Level::Info);
         assert!(config.include_timestamps);
         assert!(config.include_location);
@@ -182,16 +149,16 @@ mod tests {
     // Traces to: FR-OBS-010
     #[test]
     fn test_log_context_autogen_id() {
-        let ctx = LogContext::new(None);
+        let ctx = new_log_context(None);
         assert!(!ctx.correlation_id.is_empty());
-        let ctx2 = LogContext::new(None);
+        let ctx2 = new_log_context(None);
         assert_ne!(ctx.correlation_id, ctx2.correlation_id);
     }
 
     // Traces to: FR-OBS-011
     #[test]
     fn test_log_context_with_provided_id() {
-        let ctx = LogContext::new(Some("test-123".to_string()));
+        let ctx = new_log_context(Some("test-123".to_string()));
         assert_eq!(ctx.correlation_id, "test-123");
     }
 
@@ -200,7 +167,7 @@ mod tests {
     fn test_log_context_preserves_custom_id() {
         let custom_ids = vec!["req-abc", "trace-xyz", "span-001"];
         for id in custom_ids {
-            let ctx = LogContext::new(Some(id.to_string()));
+            let ctx = new_log_context(Some(id.to_string()));
             assert_eq!(ctx.correlation_id, id);
         }
     }
@@ -208,7 +175,7 @@ mod tests {
     // Traces to: FR-OBS-010
     #[test]
     fn test_log_context_uuid_format() {
-        let ctx = LogContext::new(None);
+        let ctx = new_log_context(None);
         // UUID v4 format check: should be 36 characters with 4 hyphens
         assert_eq!(ctx.correlation_id.len(), 36);
         assert_eq!(ctx.correlation_id.chars().filter(|c| *c == '-').count(), 4);
@@ -217,7 +184,7 @@ mod tests {
     // Traces to: FR-OBS-011
     #[test]
     fn test_log_context_empty_string() {
-        let ctx = LogContext::new(Some("".to_string()));
+        let ctx = new_log_context(Some("".to_string()));
         assert_eq!(ctx.correlation_id, "");
     }
 

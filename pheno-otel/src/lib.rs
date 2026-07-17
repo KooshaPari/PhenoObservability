@@ -29,27 +29,29 @@
 #![deny(unsafe_code)]
 #![deny(rust_2018_idioms)]
 
-use thiserror::Error;
-
 /// Error type for OTLP export operations.
-#[derive(Debug, Error)]
 pub enum OtlpError {
     /// Serialization of an OTLP payload failed.
-    #[error("serialization failed: {0}")]
     SerializeFailed(String),
     /// The HTTP transport returned a non-2xx status.
-    #[error("transport error: {0}")]
     Transport(String),
     /// The exporter was used before being configured.
-    #[error("exporter not configured: {0}")]
     NotConfigured(String),
     /// A resource attribute or span attribute is invalid per OTel semconv.
-    #[error("invalid attribute: {0}")]
     InvalidAttribute(String),
 }
 
+/// Human-readable message for an [`OtlpError`].
+pub fn otlp_error_message(err: &OtlpError) -> String {
+    match err {
+        OtlpError::SerializeFailed(msg) => format!("serialization failed: {msg}"),
+        OtlpError::Transport(msg) => format!("transport error: {msg}"),
+        OtlpError::NotConfigured(msg) => format!("exporter not configured: {msg}"),
+        OtlpError::InvalidAttribute(msg) => format!("invalid attribute: {msg}"),
+    }
+}
+
 /// Opaque handle representing an active export pipeline.
-#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExportHandle {
     /// Endpoint URL the exporter is bound to.

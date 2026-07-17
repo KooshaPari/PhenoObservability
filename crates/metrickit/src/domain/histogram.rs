@@ -1,8 +1,8 @@
 //! Histogram Metric
 
-use std::sync::Arc;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use super::{MetricMetadata, MetricType};
 
@@ -67,7 +67,12 @@ pub struct Histogram {
 impl Histogram {
     /// Create with default buckets
     pub fn new(name: impl Into<String>) -> Self {
-        Self::with_buckets(name, vec![0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0])
+        Self::with_buckets(
+            name,
+            vec![
+                0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
+            ],
+        )
     }
 
     /// Create with custom buckets

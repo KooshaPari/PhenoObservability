@@ -1,8 +1,8 @@
 //! # metrickit - Metrics Collection Framework
 
-pub mod domain;
-pub mod application;
 pub mod adapters;
+pub mod application;
+pub mod domain;
 
-pub use domain::*;
 pub use application::*;
+pub use domain::*;

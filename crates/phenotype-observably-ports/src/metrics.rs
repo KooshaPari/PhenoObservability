@@ -7,16 +7,19 @@
 use std::collections::HashMap;
 
 /// Canonical error type for metrics operations.
-#[derive(Debug, thiserror::Error)]
 pub enum MetricsError {
-    #[error("failed to register metric '{name}': {source}")]
-    RegistrationFailed {
-        name: String,
-        #[source]
-        source: Box<dyn std::error::Error + Send + Sync + 'static>,
-    },
-    #[error("metrics backend error: {0}")]
+    RegistrationFailed { name: String, message: String },
     Backend(String),
+}
+
+/// Human-readable message for a [`MetricsError`].
+pub fn metrics_error_message(err: &MetricsError) -> String {
+    match err {
+        MetricsError::RegistrationFailed { name, message } => {
+            format!("failed to register metric '{name}': {message}")
+        }
+        MetricsError::Backend(msg) => format!("metrics backend error: {msg}"),
+    }
 }
 
 pub type MetricsResult<T> = Result<T, MetricsError>;
@@ -62,7 +65,6 @@ pub trait MetricsPort: Send + Sync {
 // ---------------------------------------------------------------------------
 
 /// A recorded counter entry in the in-memory double.
-#[derive(Debug, Clone, PartialEq)]
 pub struct CounterEntry {
     pub name: String,
     pub delta: u64,
@@ -70,7 +72,6 @@ pub struct CounterEntry {
 }
 
 /// A recorded gauge entry in the in-memory double.
-#[derive(Debug, Clone, PartialEq)]
 pub struct GaugeEntry {
     pub name: String,
     pub value: f64,
@@ -78,7 +79,6 @@ pub struct GaugeEntry {
 }
 
 /// A recorded histogram observation in the in-memory double.
-#[derive(Debug, Clone, PartialEq)]
 pub struct HistogramEntry {
     pub name: String,
     pub value: f64,

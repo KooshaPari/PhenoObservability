@@ -42,66 +42,60 @@
 use proc_macro::TokenStream;
 use proc_macro2::{self, Span};
 use quote::{quote, ToTokens};
-use syn::{
-    parse::{Parse, ParseStream},
-    FnArg, Ident, ItemFn, LitStr, Pat, ReturnType,
-};
+use syn::{parse::{Parse, ParseStream}, FnArg, Ident, ItemFn, LitStr, Pat, ReturnType};
 
 /// Parsed options passed to `#[async_instrumented(...)]`.
 ///
 /// All fields are optional. Unspecified values fall back to the defaults
 /// documented on `async_instrumented`.
-#[derive(Default)]
 struct MacroOptions {
     name: Option<String>,
     level: Option<String>,
     skip: Vec<Ident>,
 }
 
-impl Parse for MacroOptions {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut opts = MacroOptions::default();
-        while !input.is_empty() {
-            let key: Ident = input.parse()?;
-            // `skip(...)` is a list of identifiers; everything else is `key = "value"`.
-            if key == "skip" {
-                let content;
-                syn::parenthesized!(content in input);
-                let punctuated = content.parse_terminated(Ident::parse, syn::Token![,])?;
-                opts.skip.extend(punctuated);
-            } else {
-                let _eq: syn::Token![=] = input.parse()?;
-                let lit: LitStr = input.parse()?;
-                let value = lit.value();
-                match key.to_string().as_str() {
-                    "name" => opts.name = Some(value),
-                    "level" => opts.level = Some(value),
-                    other => {
-                        return Err(syn::Error::new_spanned(
-                            key,
-                            format!(
-                                "unknown option `{}`; expected one of: name, level, skip",
-                                other
-                            ),
-                        ));
-                    }
+fn parse_macro_options(input: ParseStream) -> syn::Result<MacroOptions> {
+    let mut opts = MacroOptions {
+        name: None,
+        level: None,
+        skip: Vec::new(),
+    };
+    while !input.is_empty() {
+        let key: Ident = input.parse()?;
+        // `skip(...)` is a list of identifiers; everything else is `key = "value"`.
+        if key == "skip" {
+            let content;
+            syn::parenthesized!(content in input);
+            let punctuated = content.parse_terminated(Ident::parse, syn::Token![,])?;
+            opts.skip.extend(punctuated);
+        } else {
+            let _eq: syn::Token![=] = input.parse()?;
+            let lit: LitStr = input.parse()?;
+            let value = lit.value();
+            match key.to_string().as_str() {
+                "name" => opts.name = Some(value),
+                "level" => opts.level = Some(value),
+                other => {
+                    return Err(syn::Error::new_spanned(
+                        key,
+                        format!(
+                            "unknown option `{}`; expected one of: name, level, skip",
+                            other
+                        ),
+                    ));
                 }
             }
-            if input.peek(syn::Token![,]) {
-                let _comma: syn::Token![,] = input.parse()?;
-            }
         }
-        Ok(opts)
+        if input.peek(syn::Token![,]) {
+            let _comma: syn::Token![,] = input.parse()?;
+        }
     }
+    Ok(opts)
 }
 
 /// Map a level string (e.g. `"info"`) to the matching `tracing::Level` variant.
 fn level_tokens(level: &Option<String>) -> proc_macro2::TokenStream {
-    let variant = match level
-        .as_deref()
-        .map(str::to_ascii_lowercase)
-        .as_deref()
-    {
+    let variant = match level.as_deref().map(str::to_ascii_lowercase).as_deref() {
         Some("trace") => "TRACE",
         Some("debug") => "DEBUG",
         Some("info") => "INFO",
@@ -207,10 +201,11 @@ fn async_instrumented_impl(
     attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
-    let opts = match syn::parse2::<MacroOptions>(attr) {
-        Ok(opts) => opts,
-        Err(err) => return err.to_compile_error(),
-    };
+    let opts =
+        match syn::parse::Parser::parse2(|input: ParseStream| parse_macro_options(input), attr) {
+            Ok(opts) => opts,
+            Err(err) => return err.to_compile_error(),
+        };
 
     let input = match syn::parse2::<ItemFn>(item) {
         Ok(item) => item,
@@ -243,10 +238,7 @@ fn async_instrumented_impl(
 
     // Prepend `'fn_lifetime` to the existing generics (if any).
     let synthetic_lt: syn::GenericParam = syn::parse_quote! { 'fn_lifetime };
-    wrapped_sig
-        .generics
-        .params
-        .insert(0, synthetic_lt);
+    wrapped_sig.generics.params.insert(0, synthetic_lt);
 
     // Rewrite every reference input type from the anonymous lifetime
     // `&'_ T` to `&'fn_lifetime T`. Without this rewrite, the original
@@ -317,9 +309,10 @@ mod tests {
     /// Unit test: option parser accepts `name`, `level`, `skip(...)`.
     #[test]
     fn parses_attr_options() {
-        let attr: MacroOptions = syn::parse_quote! {
-            name = "ingest", level = "warn", skip(secret, token)
-        };
+        let attr = quote::quote! { name = "ingest", level = "warn", skip(secret, token) };
+        let attr: MacroOptions =
+            syn::parse::Parser::parse2(|input: ParseStream| parse_macro_options(input), attr)
+                .expect("parse options");
         assert_eq!(attr.name.as_deref(), Some("ingest"));
         assert_eq!(attr.level.as_deref(), Some("warn"));
         let skips: Vec<String> = attr.skip.iter().map(|i| i.to_string()).collect();
@@ -329,8 +322,10 @@ mod tests {
     /// Unit test: option parser rejects unknown options.
     #[test]
     fn rejects_unknown_option() {
-        let res: syn::Result<MacroOptions> =
-            syn::parse2(quote::quote! { bogus = "x" });
+        let res = syn::parse::Parser::parse2(
+            |input: ParseStream| parse_macro_options(input),
+            quote::quote! { bogus = "x" },
+        );
         assert!(res.is_err(), "expected error for unknown option");
     }
 

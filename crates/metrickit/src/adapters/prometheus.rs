@@ -1,15 +1,15 @@
 //! Prometheus Adapter
 
-use std::net::SocketAddr;
+use bytes::Bytes;
+use http_body_util::Full;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
-use hyper::{Request, Response, header::CONTENT_TYPE};
+use hyper::{header::CONTENT_TYPE, Request, Response};
 use hyper_util::rt::TokioIo;
+use std::net::SocketAddr;
 use tokio::net::TcpListener;
-use http_body_util::Full;
-use bytes::Bytes;
 
-use crate::application::{PrometheusExporter, exporter::MetricExporter};
+use crate::application::{exporter::MetricExporter, PrometheusExporter};
 use crate::domain::Registry;
 
 /// Start Prometheus metrics endpoint
@@ -35,17 +35,16 @@ pub async fn start_prometheus_server(
                 let exporter = exporter.clone();
                 async move {
                     let metrics = exporter.export(&registry).unwrap_or_default();
-                    Ok::<_, std::convert::Infallible>(Response::builder()
-                        .header(CONTENT_TYPE, "text/plain; version=0.0.4")
-                        .body(Full::new(Bytes::from(metrics)))
-                        .unwrap())
+                    Ok::<_, std::convert::Infallible>(
+                        Response::builder()
+                            .header(CONTENT_TYPE, "text/plain; version=0.0.4")
+                            .body(Full::new(Bytes::from(metrics)))
+                            .unwrap(),
+                    )
                 }
             });
 
-            if let Err(e) = http1::Builder::new()
-                .serve_connection(io, svc)
-                .await
-            {
+            if let Err(e) = http1::Builder::new().serve_connection(io, svc).await {
                 eprintln!("Error serving connection: {}", e);
             }
         });
