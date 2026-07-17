@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-04",
+  "sources": {
+    "forge_db": "/Users/kooshapari/forge/.forge.db",
+    "claude_projects": "/Users/kooshapari/.claude/projects",
+    "codex_sessions": "/Users/kooshapari/.codex/sessions"
+  },
+  "files": {
+    "Full": {
+      "path": "traces_full.csv",
+      "rows": 200,
+      "description": "100 forge + 100 claudecode raw conversation traces with full embedded raw payload",
+      "use_case": "Full-fidelity AI-DD eval (long-horizon, deep context)"
+    },
+    "Lite": {
+      "path": "traces_lite.csv",
+      "rows": 4,
+      "description": "2 forge + 2 claudecode curated subset for quick iteration and smoke tests",
+      "use_case": "Quick smoke / CI gate / development iteration"
+    }
+  },
+  "schema": {
+    "agent": "Source orchestrator (forge | claudecode)",
+    "conversation_id": "Unique session identifier from source DB",
+    "title": "Conversation title or first user prompt excerpt",
+    "started_at": "ISO 8601 start timestamp",
+    "duration_seconds": "Wall-clock duration of the session in seconds",
+    "message_count": "Total messages in the conversation",
+    "tool_count": "Total tool invocations across the session",
+    "subagent_count": "Sub-agent delegations observed",
+    "user_intent": "Derived high-level intent (may be empty for short traces)",
+    "is_human_driven": "True if parent_id is null (top-level human-initiated)",
+    "is_long_horizon": "True if duration exceeds long-horizon threshold (multi-day or 100+ tools)",
+    "model": "Primary model used in the session",
+    "raw": "Full conversation payload (JSON-encoded, may contain nested message structure)"
+  },
+  "selection_criteria": {
+    "human_vs_agent": "50/50 split (parent_id null vs parent_id set)",
+    "long_vs_short": "Mix of multi-day long-horizon traces and short single-task traces",
+    "raw_fidelity": "raw column preserves full conversation payload with no removals",
+    "structure": "Schema chosen for direct ingest by AI-DD eval runner without additional processing"
+  }
+}
