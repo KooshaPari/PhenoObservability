@@ -84,6 +84,13 @@ pub trait OtlpPort: Send + Sync {
 /// Concrete OTLP exporters (Stdout, HTTP).
 pub mod exporters;
 
+/// W3C Trace Context propagator (extract/inject across HTTP headers).
+///
+/// See [`propagation::W3CTraceContextPropagator`] for the canonical
+/// carrier-agnostic surface; consumers import this when they need to
+/// forward trace context across an HTTP or gRPC service boundary.
+pub mod propagation;
+
 /// Build an OTel `service.name`-flavored `ExportHandle` for tests.
 pub fn test_handle(endpoint: &str) -> ExportHandle {
     ExportHandle {
