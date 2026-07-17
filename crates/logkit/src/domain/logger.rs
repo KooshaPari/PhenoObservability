@@ -1,7 +1,7 @@
 //! Logger Trait
 
-use async_trait::async_trait;
 use super::{Level, LogEntry};
+use async_trait::async_trait;
 
 #[async_trait]
 pub trait Logger: Send + Sync {
@@ -25,3 +25,41 @@ impl std::fmt::Display for LogError {
 }
 
 impl std::error::Error for LogError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn log_error_io_display() {
+        let err = LogError::Io("disk full".into());
+        assert_eq!(format!("{}", err), "IO error: disk full");
+    }
+
+    #[test]
+    fn log_error_serialization_display() {
+        let err = LogError::Serialization("invalid utf-8".into());
+        assert_eq!(format!("{}", err), "Serialization error: invalid utf-8");
+    }
+
+    #[test]
+    fn log_error_implements_std_error() {
+        fn assert_error(_: &dyn std::error::Error) {}
+        assert_error(&LogError::Io("e".into()));
+        assert_error(&LogError::Serialization("e".into()));
+    }
+
+    #[test]
+    fn log_error_debug() {
+        let err = LogError::Io("oops".into());
+        let debug = format!("{:?}", err);
+        assert!(debug.contains("Io") || debug.contains("oops"));
+    }
+
+    #[test]
+    fn log_error_clone() {
+        let a = LogError::Io("e1".into());
+        let b = a.clone();
+        assert_eq!(format!("{}", a), format!("{}", b));
+    }
+}
