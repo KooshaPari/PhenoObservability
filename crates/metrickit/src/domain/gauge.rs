@@ -1,8 +1,8 @@
 //! Gauge Metric
 
-use std::sync::Arc;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use super::{MetricMetadata, MetricType};
 

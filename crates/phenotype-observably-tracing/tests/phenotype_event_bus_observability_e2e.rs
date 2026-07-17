@@ -353,4 +353,3 @@ async fn test_end_to_end_cross_collection_pipeline() {
     assert!(metrics_text.contains("rule_evaluations_total"));
     assert!(metrics_text.contains("audit_appends_total"));
 }
-

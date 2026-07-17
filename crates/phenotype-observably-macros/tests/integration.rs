@@ -240,9 +240,6 @@ struct LevelRecorder {
 
 impl<S: Subscriber> Layer<S> for LevelRecorder {
     fn on_new_span(&self, attrs: &Attributes<'_>, _id: &Id, _ctx: Context<'_, S>) {
-        self.levels
-            .lock()
-            .unwrap()
-            .push(*attrs.metadata().level());
+        self.levels.lock().unwrap().push(*attrs.metadata().level());
     }
 }
