@@ -25,7 +25,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: github/codeql-action/init@v4
         with:
           languages: rust
@@ -38,7 +38,7 @@ jobs:
     name: Dependency audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: cargo audit
         run: |
           cargo install --locked cargo-audit || true
@@ -48,7 +48,7 @@ jobs:
     name: Gitleaks secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Run gitleaks
@@ -60,7 +60,7 @@ jobs:
     name: SBOM generation (CycloneDX)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Generate SBOM (cargo-cyclonedx)
         run: |
           cargo install --locked cargo-cyclonedx || true
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [codeql, dependency-audit, gitleaks]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Generate SLSA provenance attestation
         uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
         with:

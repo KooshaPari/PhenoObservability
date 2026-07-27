@@ -32,10 +32,10 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - uses: dtolnay/rust-toolchain@67ef31d5b988238dd797d409d6f9574278e20537 # v-latest
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # v-latest
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@baf1a810e98b6a3001d0d7234864ed75a17c42fb # v-latest
+      - uses: Swatinem/rust-cache@9f151aca7c3990bab7afe2d82ac58088d3b01074 # v-latest
         with:
           workspaces: PhenoObservability -> target
       - run: cargo test --workspace --lib
@@ -69,7 +69,7 @@ jobs:
             "https://api.github.com/repos/KooshaPari/pheno/tarball/main" \
             -o pheno.tgz
           tar -xzf pheno.tgz --strip-components=1 -C pheno
-      - uses: dtolnay/rust-toolchain@67ef31d5b988238dd797d409d6f9574278e20537 # v-latest
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # v-latest
         with:
           toolchain: stable
       - run: cargo install cargo-tarpaulin
