@@ -10,4 +10,4 @@ permissions:
   contents: read
 jobs:
   trufflehog:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea
+    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@d5b95a0892fafa8f14e9b51b8fda46f22cd79ec3
