@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   journey-gate:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/journey-gate.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea
+    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/journey-gate.yml@0725523a18efc9ddfc8513d7bf7fc47dea5f6fd3
 permissions:
   contents: read
 
