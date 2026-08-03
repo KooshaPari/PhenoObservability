@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 jobs:
   call-sbom-refresh:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/sbom-monthly.yml@3fe80e39fd8beb9e7aef28caa9cbf7efd35d58a6
+    uses: KooshaPari/phenotype-tooling/.github/workflows/sbom-monthly.yml@3b952d66267c06ec5a68e2c4b0a37ac6a59a4e47
     with:
       repo_path: '.'
       build_system: 'rust'
