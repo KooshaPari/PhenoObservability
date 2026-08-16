@@ -38,6 +38,9 @@ concurrency:
   group: trunk-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   trunk-check:
     name: Lint & Format
