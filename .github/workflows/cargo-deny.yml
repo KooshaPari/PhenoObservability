@@ -8,7 +8,7 @@ on:
     paths: ['Cargo.toml','Cargo.lock','deny.toml']
 jobs:
   cargo-deny:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/cargo-deny.yml@dc8de1c7f6ba738ae47bbd0b07c8e30bc7cc36b9
+    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/cargo-deny.yml@e0b1fe2b52cdaa7344c5cee324b69ebfcb48ffda
 permissions:
   contents: read
 
