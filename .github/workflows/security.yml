@@ -51,6 +51,9 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+      - name: Ensure pull request base history is available
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags origin "${{ github.event.pull_request.base.sha }}^"
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v3
         env:
