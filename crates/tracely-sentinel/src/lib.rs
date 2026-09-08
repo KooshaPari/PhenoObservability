@@ -123,7 +123,9 @@ mod tests {
     #[test]
     fn test_validate_invalid_level() {
         // Test that error types work for config validation
-        let err = Error::CircuitBreaker(CircuitBreakerError::Open);
+        let err = Error::CircuitBreaker(CircuitBreakerError::Validation(
+            "Circuit breaker is open".to_string(),
+        ));
         assert!(matches!(err, Error::CircuitBreaker(_)));
     }
 
@@ -131,8 +133,12 @@ mod tests {
     #[test]
     fn test_validate_log_levels() {
         // Validate error types work for config validation
-        let open = Error::CircuitBreaker(CircuitBreakerError::Open);
-        let half_open = Error::CircuitBreaker(CircuitBreakerError::HalfOpen);
+        let open = Error::CircuitBreaker(CircuitBreakerError::Validation(
+            "Circuit breaker is open".to_string(),
+        ));
+        let half_open = Error::CircuitBreaker(CircuitBreakerError::Validation(
+            "Circuit breaker is half-open, request not allowed".to_string(),
+        ));
         assert!(matches!(open, Error::CircuitBreaker(_)));
         assert!(matches!(half_open, Error::CircuitBreaker(_)));
     }
