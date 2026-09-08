@@ -53,7 +53,10 @@ jobs:
           fetch-depth: 0
       - name: Ensure pull request base history is available
         if: github.event_name == 'pull_request'
-        run: git fetch --no-tags origin "${{ github.event.pull_request.base.sha }}^"
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags origin "+${base_sha}:refs/remotes/origin/pr-base"
+          git fetch --no-tags origin "+${base_sha}^:refs/remotes/origin/pr-base-parent"
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v3
         env:
