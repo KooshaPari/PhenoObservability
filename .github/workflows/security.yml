@@ -7,14 +7,14 @@ on:
     branches: [main]
   schedule:
     # Weekly Monday 09:00 PDT cron (ADR-042 cadence)
-    - cron: '0 16 * * 1'
+    - cron: "0 16 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
   security-events: write
-  id-token: write   # required for SLSA provenance
+  id-token: write # required for SLSA provenance
 
 jobs:
   codeql:
