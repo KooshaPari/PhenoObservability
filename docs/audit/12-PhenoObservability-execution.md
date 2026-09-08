@@ -48,3 +48,22 @@ Bundle SHA-256:
 Implementation occurred only in the isolated worktree
 `PhenoObservability-wtrees/sentinel-build-repair`. No default branch, reset,
 clean, deletion, archive, or merge operation was performed.
+
+## Hosted follow-up at `471be995`
+
+Successful hosted checks include Rust, Unit Tests, Lint & Format, Coverage,
+SonarCloud, module-deps, and dependency review. The hosted Cargo Deny and
+Security Scan failures were reproducible locally as two patched advisories:
+`crossbeam-epoch 0.9.18 -> 0.9.20` and `h2 0.4.15 -> 0.4.16`; `event-listener`
+was also advanced from `5.4.1 -> 5.4.2` to clear its unsoundness warning.
+
+The remaining Cargo Deny license failure is a pre-existing transitive
+dependency: `xxhash-rust 0.8.15` (BSL-1.0) through `redis -> pheno-dragonfly`.
+BSL-1.0 was not added to the allowlist because that would broaden licensing
+authority beyond this repair lane. The advisory evidence is from hosted run
+`34203181985`, job `101986518091`; the security scan also reported the same
+two advisories in run `34203181877`.
+
+The gitleaks failure was a repository configuration defect: `.gitleaks.toml`
+used the invalid regexp `*.lock`. It is now `.*\\.lock$`, and local
+`gitleaks protect --config .gitleaks.toml --no-banner --redact` passes.
