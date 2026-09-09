@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 ### Fixed
+- **ci(audit):** switch `.github/workflows/audit.yml` from the non-existent `rustsec/audit-action@v2` reference (returning 404; workflow was failing every run for the entire recorded history, 0/74 success on the latest sampled runs) to the SHA-pinned `rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998` used by `.github/workflows/cargo-audit.yml`. Also pins `actions/checkout` to a SHA per ADR-042, aligns the runner to `ubuntu-24.04`, and adds explicit `contents: read` permissions plus `workflow_dispatch` for manual triggers. Unblocks required `audit` check on PR #249 and any future PR.
 
 ### Security
 
