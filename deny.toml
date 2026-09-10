@@ -14,7 +14,11 @@ allow = [
     "CC0-1.0",
     "MIT-0",
     "Unicode-3.0",
-    "CDLA-Permissive-2.0"
+    "CDLA-Permissive-2.0",
+    # BSL-1.0 (Boost Software License 1.0) is required by transitive deps:
+    #   - xxhash-rust v0.8.15 (single-license BSL-1.0)
+    #   - ryu v1.0.23 (dual: Apache-2.0 OR BSL-1.0)
+    "BSL-1.0",
 ]
 
 [bans]
