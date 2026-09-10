@@ -89,3 +89,18 @@ pub use compat::{
     TracingVersion,
 };
 pub use compat::{debug, error, info, instrument, span, trace, warn};
+
+// Re-export the `pheno-otel` workspace member so consumers of this crate
+// can reach the OTLP exporter / correlation / redaction surface via the
+// single canonical import path:
+//
+//     use pheno_tracing::pheno_otel::{ExporterConfig, OtlpHttpExporter};
+//     use pheno_tracing::pheno_otel::correlation::{TraceContext, propagate};
+//     use pheno_tracing::pheno_otel::redaction::{RedactionConfig, redact};
+//
+// This unifies the bounded target: the PhenoObservability bounded target
+// ("map contract to workspace member/export/consumer/CI; deterministic
+// correlation and redaction fixture") is delivered through this re-export
+// without forcing every consumer to take a direct workspace dependency
+// on `pheno-otel`.
+pub use pheno_otel;

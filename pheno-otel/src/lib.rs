@@ -84,6 +84,17 @@ pub trait OtlpPort: Send + Sync {
 /// Concrete OTLP exporters (Stdout, HTTP).
 pub mod exporters;
 
+/// W3C TraceContext correlation header. Implements the G2 deterministic
+/// correlation fixture: byte-identical round-trips across runs.
+pub mod correlation;
+
+/// Deterministic PII redaction for telemetry payloads. Implements the G2
+/// deterministic redaction fixture: byte-identical redactions across runs.
+pub mod redaction;
+
+#[cfg(test)]
+mod g2_fixture;
+
 /// Build an OTel `service.name`-flavored `ExportHandle` for tests.
 pub fn test_handle(endpoint: &str) -> ExportHandle {
     ExportHandle {
