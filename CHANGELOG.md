@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 ### Fixed
+- **ci(audit):** switch `.github/workflows/audit.yml` from the non-existent `rustsec/audit-action@v2` reference (returning 404; workflow was failing every run for the entire recorded history, 0/74 success on the latest sampled runs) to the SHA-pinned `rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998` used by `.github/workflows/cargo-audit.yml`. Also pins `actions/checkout` to a SHA per ADR-042, aligns the runner to `ubuntu-24.04`, and adds explicit `contents: read` permissions plus `workflow_dispatch` for manual triggers. Hosted verification on this PR's branch (run id `34311528488`) now resolves the action and runs cargo-audit; the workflow no longer fails on a 404. **Caveat:** the run still concludes with a real cargo-audit finding (RUSTSEC-2026-0204 `crossbeam-epoch`, RUSTSEC-2026-0258 `h2`, plus `event-listener` unsound and a yanked `chacha20` warning); remediation is out of scope for this PR and tracked as a follow-up. Unblocks required `audit` check on PR #249 from the opaque 404 failure mode.
 
 ### Security
 
