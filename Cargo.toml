@@ -16,6 +16,7 @@ members = [
     "crates/phenotype-observably-sentinel",
     "crates/phenotype-observably-macros",
     "crates/phenotype-observably-ports",
+    "crates/pheno-tracing",
     "pheno-otel",
 ]
 
@@ -53,3 +54,4 @@ phenotype-observably-ports = { path = "crates/phenotype-observably-ports" }
 # `phenotype-sentinel`) pull this in to surface fleet-wide L62
 # error-rate observability per ADR-036B + ADR-042.
 pheno-otel = { path = "pheno-otel" }
+pheno-tracing = { path = "crates/pheno-tracing" }

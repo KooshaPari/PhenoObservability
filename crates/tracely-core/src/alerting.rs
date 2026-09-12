@@ -131,7 +131,14 @@ mod tests {
 
     #[test]
     fn evaluate_greater_than_fires() {
-        let rule = AlertRule::new("r1", "Test", "q", 10.0, Operator::GreaterThan, Severity::Warning);
+        let rule = AlertRule::new(
+            "r1",
+            "Test",
+            "q",
+            10.0,
+            Operator::GreaterThan,
+            Severity::Warning,
+        );
         assert!(rule.evaluate(11.0));
         assert!(!rule.evaluate(9.0));
         assert!(!rule.evaluate(10.0));
@@ -148,7 +155,7 @@ mod tests {
     fn evaluate_rules_returns_fired() {
         let rules = default_rules();
         let values = vec![
-            ("error-rate".to_string(), 0.1),   // > 0.05 → fires
+            ("error-rate".to_string(), 0.1),    // > 0.05 → fires
             ("p99-latency".to_string(), 500.0), // < 1000 → no fire
         ];
         let alerts = evaluate_rules(&rules, &values);
