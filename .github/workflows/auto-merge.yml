@@ -27,7 +27,7 @@ jobs:
       startsWith(github.event.pull_request.title, 'fix(review-surface)')
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: enable auto-merge
         uses: gh-actions/auto-merge@v1.3.1
