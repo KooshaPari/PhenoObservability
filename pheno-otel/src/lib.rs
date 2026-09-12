@@ -95,6 +95,15 @@ pub mod redaction;
 #[cfg(test)]
 mod g2_fixture;
 
+/// Lightweight error-rate instrumentation used by consumers that cannot
+/// depend on a concrete metrics backend.
+pub mod metrics {
+    /// Record an error event through the repository's tracing pipeline.
+    pub fn record_error(operation: &str, reason: &str) {
+        tracing::error!(operation, reason, "observability error event");
+    }
+}
+
 /// Build an OTel `service.name`-flavored `ExportHandle` for tests.
 pub fn test_handle(endpoint: &str) -> ExportHandle {
     ExportHandle {

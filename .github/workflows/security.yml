@@ -7,14 +7,14 @@ on:
     branches: [main]
   schedule:
     # Weekly Monday 09:00 PDT cron (ADR-042 cadence)
-    - cron: '0 16 * * 1'
+    - cron: "0 16 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
   security-events: write
-  id-token: write   # required for SLSA provenance
+  id-token: write # required for SLSA provenance
 
 jobs:
   codeql:
@@ -51,6 +51,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - name: Ensure pull request base history is available
+        if: github.event_name == 'pull_request'
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags origin "+${base_sha}:refs/remotes/origin/pr-base"
+          git fetch --no-tags origin "+${base_sha}^:refs/remotes/origin/pr-base-parent"
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v3
         env:
