@@ -18,6 +18,7 @@ members = [
     "crates/phenotype-observably-ports",
     "crates/pheno-tracing",
     "pheno-otel",
+    "crates/logkit",
 ]
 
 [workspace.package]
